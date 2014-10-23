@@ -38,10 +38,10 @@ func main() {
 		path := flag.Args()[0]
 		switch *m {
 			case "LIST", "PROPFIND":
-				if files, err := c.List(path); err == nil {
-					fmt.Println(len(*files))
-					for _, f := range *files {
-						fmt.Println(*f)
+				if files, err := c.ReadDir(path); err == nil {
+					fmt.Println(len(files))
+					for _, f := range files {
+						fmt.Println(f)
 					}
 				} else {
 					fmt.Println(err)

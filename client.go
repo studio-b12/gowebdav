@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
+	"time"
 )
 
 type Client struct {
@@ -24,9 +26,7 @@ func NewClient(uri string, user string, pw string) *Client {
 		c.headers.Add("Authorization", auth)
 	}
 
-	if !strings.HasSuffix(c.root, "/") {
-		c.root += "/"
-	}
+	c.root = FixSlash(c.root)
 
 	return c
 }
@@ -68,24 +68,31 @@ func getProps(r *response, status string) *props {
 	return nil
 }
 
-func (c *Client) List(path string) (*[]*File, error) {
-	files := make([]*File, 0)
+func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
+	files := make([]os.FileInfo, 0)
 	parse := func(resp interface{}) {
 		r := resp.(*response)
 		if p := getProps(r, "200"); p != nil {
-			var f File
+			f := new(File)
+			f.path = "/TODO/"
+			f.name = p.Name
+
 			if p.Type.Local == "collection" {
-				f = directory{p.Name}
+				f.size = 0
+				f.modified = time.Unix(0, 0)
+				f.isdir = true
 			} else {
-				f = file{p.Name, parseUint(&p.Size), parseModified(&p.Modified)}
+				f.size = parseInt64(&p.Size)
+				f.modified = parseModified(&p.Modified)
+				f.isdir = false
 			}
 
-			files = append(files, &f)
+			files = append(files, *f)
 			r.Props = nil
 		}
 	}
 
-	err := c.Propfind(path, false,
+	err := c.Propfind(FixSlash(path), false,
 		`<d:propfind xmlns:d='DAV:'>
 			<d:prop>
 				<d:displayname/>
@@ -96,7 +103,7 @@ func (c *Client) List(path string) (*[]*File, error) {
 		</d:propfind>`,
 		&response{},
 		parse)
-	return &files, err
+	return files, err
 }
 
 func (c *Client) Read(path string) {

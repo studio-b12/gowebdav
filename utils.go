@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+func FixSlash(s string) string {
+	if !strings.HasSuffix(s, "/") {
+		s += "/"
+	}
+	return s
+}
+
 func Join(path0 string, path1 string) string {
 	return strings.TrimSuffix(path0, "/") + "/" + strings.TrimPrefix(path1, "/")
 }
@@ -22,6 +29,13 @@ func String(r io.Reader) string {
 func parseUint(s *string) uint {
 	if n, e := strconv.ParseUint(*s, 10, 32); e == nil {
 		return uint(n)
+	}
+	return 0
+}
+
+func parseInt64(s *string) int64 {
+	if n, e := strconv.ParseInt(*s, 10, 64); e == nil {
+		return n
 	}
 	return 0
 }
