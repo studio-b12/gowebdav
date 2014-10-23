@@ -69,15 +69,17 @@ func getProps(r *response, status string) *props {
 }
 
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
+	path = FixSlash(path)
 	files := make([]os.FileInfo, 0)
 	parse := func(resp interface{}) {
 		r := resp.(*response)
 		if p := getProps(r, "200"); p != nil {
 			f := new(File)
-			f.path = "/TODO/"
 			f.name = p.Name
+			f.path = path + f.name
 
 			if p.Type.Local == "collection" {
+				f.path += "/"
 				f.size = 0
 				f.modified = time.Unix(0, 0)
 				f.isdir = true
@@ -88,11 +90,12 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 			}
 
 			files = append(files, *f)
-			r.Props = nil
 		}
+
+		r.Props = nil
 	}
 
-	err := c.Propfind(FixSlash(path), false,
+	err := c.Propfind(path, false,
 		`<d:propfind xmlns:d='DAV:'>
 			<d:prop>
 				<d:displayname/>
