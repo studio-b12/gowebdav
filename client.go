@@ -131,6 +131,20 @@ func (c *Client) Remove(path string) error {
 	}
 }
 
+func (c *Client) Mkdir(path string) error {
+	path = FixSlashes(path)
+	status := c.MkCol(path)
+	if status == 201 {
+		return nil
+	}
+
+	if status == 409 {
+		// TODO
+	}
+
+	return errors.New(fmt.Sprintf("%d", status))
+}
+
 func (c *Client) Read(path string) {
 	fmt.Println("Read " + path)
 }

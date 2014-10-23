@@ -30,6 +30,20 @@ func (c *Client) reqDo(method string, path string, body io.Reader) (*http.Respon
 	return c.c.Do(rq)
 }
 
+func (c *Client) MkCol(path string) int {
+	rs, err := c.reqDo("MKCOL", path, nil)
+	if err != nil {
+		return 400
+	}
+	defer rs.Body.Close()
+
+	if rs.StatusCode == 201 || rs.StatusCode == 405 {
+		return 201
+	}
+
+	return rs.StatusCode
+}
+
 func (c *Client) Options(path string) (*http.Response, error) {
 	rq, err := c.req("OPTIONS", path, nil)
 	if err != nil {
