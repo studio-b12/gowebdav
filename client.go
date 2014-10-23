@@ -59,7 +59,7 @@ type response struct {
 	Props []props `xml:"DAV: propstat"`
 }
 
-func getProps(r *response, status string) (*props) {
+func getProps(r *response, status string) *props {
 	for _, prop := range r.Props {
 		if strings.Index(prop.Status, status) != -1 {
 			return &prop
