@@ -1,7 +1,6 @@
 package gowebdav
 
 import (
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
@@ -60,16 +59,7 @@ func (c *Client) Propfind(path string, self bool, body string, resp interface{},
 		return errors.New(fmt.Sprintf("%s - %s %s", rs.Status, rq.Method, rq.URL.String()))
 	}
 
-	decoder := xml.NewDecoder(rs.Body)
-	for t, _ := decoder.Token(); t != nil; t, _ = decoder.Token() {
-		switch se := t.(type) {
-		case xml.StartElement:
-			if se.Name.Local == "response" {
-				if e := decoder.DecodeElement(resp, &se); e == nil {
-					parse(resp)
-				}
-			}
-		}
-	}
+	parseXML(rs.Body, resp, parse)
+
 	return nil
 }

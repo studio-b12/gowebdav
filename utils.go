@@ -2,6 +2,7 @@ package gowebdav
 
 import (
 	"bytes"
+	"encoding/xml"
 	"io"
 	"strconv"
 	"strings"
@@ -30,4 +31,18 @@ func parseModified(s *string) time.Time {
 		return t
 	}
 	return time.Unix(0, 0)
+}
+
+func parseXML(data io.Reader, resp interface{}, parse func(resp interface{})) {
+	decoder := xml.NewDecoder(data)
+	for t, _ := decoder.Token(); t != nil; t, _ = decoder.Token() {
+		switch se := t.(type) {
+		case xml.StartElement:
+			if se.Name.Local == "response" {
+				if e := decoder.DecodeElement(resp, &se); e == nil {
+					parse(resp)
+				}
+			}
+		}
+	}
 }
