@@ -23,6 +23,13 @@ func FixSlash(s string) string {
 	return s
 }
 
+func FixSlashes(s string) string {
+	if s[0] != '/' {
+		s = "/" + s
+	}
+	return FixSlash(s)
+}
+
 func Join(path0 string, path1 string) string {
 	return strings.TrimSuffix(path0, "/") + "/" + strings.TrimPrefix(path1, "/")
 }

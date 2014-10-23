@@ -69,7 +69,7 @@ func getProps(r *response, status string) *props {
 }
 
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
-	path = FixSlash(path)
+	path = FixSlashes(path)
 	files := make([]os.FileInfo, 0)
 	skipSelf := true
 	parse := func(resp interface{}) {

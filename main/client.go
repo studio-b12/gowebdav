@@ -39,7 +39,7 @@ func main() {
 		switch *m {
 			case "LIST", "PROPFIND":
 				if files, err := c.ReadDir(path); err == nil {
-					fmt.Println(len(files))
+					fmt.Println(fmt.Sprintf("Resources: %d - %s", len(files), path))
 					for _, f := range files {
 						fmt.Println(f)
 					}
