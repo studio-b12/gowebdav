@@ -32,7 +32,7 @@ func NewClient(uri string, user string, pw string) *Client {
 }
 
 func (c *Client) Connect() error {
-	if rs, err := c.Options("/"); err == nil {
+	if rs, err := c.options("/"); err == nil {
 		defer rs.Body.Close()
 
 		if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
@@ -103,7 +103,7 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 		r.Props = nil
 	}
 
-	err := c.Propfind(path, false,
+	err := c.propfind(path, false,
 		`<d:propfind xmlns:d='DAV:'>
 			<d:prop>
 				<d:displayname/>
@@ -133,7 +133,7 @@ func (c *Client) Remove(path string) error {
 
 func (c *Client) Mkdir(path string) error {
 	path = FixSlashes(path)
-	status := c.MkCol(path)
+	status := c.mkcol(path)
 	if status == 201 {
 		return nil
 	}

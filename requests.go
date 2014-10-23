@@ -30,7 +30,7 @@ func (c *Client) reqDo(method string, path string, body io.Reader) (*http.Respon
 	return c.c.Do(rq)
 }
 
-func (c *Client) MkCol(path string) int {
+func (c *Client) mkcol(path string) int {
 	rs, err := c.reqDo("MKCOL", path, nil)
 	if err != nil {
 		return 400
@@ -44,7 +44,7 @@ func (c *Client) MkCol(path string) int {
 	return rs.StatusCode
 }
 
-func (c *Client) Options(path string) (*http.Response, error) {
+func (c *Client) options(path string) (*http.Response, error) {
 	rq, err := c.req("OPTIONS", path, nil)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (c *Client) Options(path string) (*http.Response, error) {
 	return c.c.Do(rq)
 }
 
-func (c *Client) Propfind(path string, self bool, body string, resp interface{}, parse func(resp interface{})) error {
+func (c *Client) propfind(path string, self bool, body string, resp interface{}, parse func(resp interface{})) error {
 	rq, err := c.req("PROPFIND", path, strings.NewReader(body))
 	if err != nil {
 		return err
