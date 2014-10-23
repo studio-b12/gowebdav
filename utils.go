@@ -3,11 +3,18 @@ package gowebdav
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
+	"fmt"
 	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func Error(r *http.Response) error {
+	return errors.New(fmt.Sprintf("%s - %s %s", r.Status, r.Request.Method, r.Request.URL.String()))
+}
 
 func FixSlash(s string) string {
 	if !strings.HasSuffix(s, "/") {

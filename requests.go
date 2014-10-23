@@ -21,6 +21,15 @@ func (c *Client) req(method string, path string, body io.Reader) (req *http.Requ
 	return req, nil
 }
 
+func (c *Client) reqDo(method string, path string, body io.Reader) (*http.Response, error) {
+	rq, err := c.req(method, path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.c.Do(rq)
+}
+
 func (c *Client) Options(path string) (*http.Response, error) {
 	rq, err := c.req("OPTIONS", path, nil)
 	if err != nil {

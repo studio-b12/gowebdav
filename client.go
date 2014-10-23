@@ -117,6 +117,20 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 	return files, err
 }
 
+func (c *Client) Remove(path string) error {
+	rs, err := c.reqDo("DELETE", path, nil)
+	if err != nil {
+		return err
+	}
+	defer rs.Body.Close()
+
+	if rs.StatusCode == 200 {
+		return nil
+	} else {
+		return Error(rs)
+	}
+}
+
 func (c *Client) Read(path string) {
 	fmt.Println("Read " + path)
 }

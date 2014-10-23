@@ -22,7 +22,7 @@ func main() {
 	root := flag.String("root", "URL", "WebDAV Endpoint")
 	usr := flag.String("user", "", "user")
 	pw := flag.String("pw", "", "password")
-	m := flag.String("X", "GET", "Method: LIST aka PROPFIND, GET")
+	m := flag.String("X", "GET", "Method: LIST aka PROPFIND, GET, DELETE")
 	flag.Parse()
 
 	if *root == "URL" {
@@ -46,7 +46,14 @@ func main() {
 				} else {
 					fmt.Println(err)
 				}
+
 			case "GET": c.Read(path)
+
+			case "DELETE", "RM":
+				if err := c.Remove(path); err != nil {
+					fmt.Println(err)
+				}
+
 			default: Fail(nil)
 		}
 	} else {
