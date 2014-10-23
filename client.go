@@ -71,8 +71,16 @@ func getProps(r *response, status string) *props {
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 	path = FixSlash(path)
 	files := make([]os.FileInfo, 0)
+	skipSelf := true
 	parse := func(resp interface{}) {
 		r := resp.(*response)
+
+		if skipSelf {
+			skipSelf = false
+			r.Props = nil
+			return
+		}
+
 		if p := getProps(r, "200"); p != nil {
 			f := new(File)
 			f.name = p.Name
