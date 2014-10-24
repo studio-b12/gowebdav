@@ -61,7 +61,7 @@ func main() {
 				}
 
 			case "MKCOL", "MKDIR":
-				if err := c.Mkdir(path); err != nil {
+				if err := c.Mkdir(path, 0); err != nil {
 					fmt.Println(err)
 				} else {
 					fmt.Println("MkDir: " + path)

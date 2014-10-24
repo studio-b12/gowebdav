@@ -133,19 +133,16 @@ func (c *Client) Remove(path string) error {
 	}
 }
 
-func (c *Client) Mkdir(path string) error {
+func (c *Client) Mkdir(path string, _ os.FileMode) error {
 	path = FixSlashes(path)
 	status := c.mkcol(path)
 	if status == 201 {
 		return nil
+	} else {
+		return newPathError("Mkdir", path, status)
 	}
-
-	if status == 409 {
-		// TODO
-	}
-
-	return errors.New(fmt.Sprintf("%d", status))
 }
+
 
 func (c *Client) Read(path string) {
 	fmt.Println("Read " + path)
