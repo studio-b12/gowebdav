@@ -121,6 +121,10 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 }
 
 func (c *Client) Remove(path string) error {
+	return c.RemoveAll(path)
+}
+
+func (c *Client) RemoveAll(path string) error {
 	rs, err := c.reqDo("DELETE", path, nil)
 	if err != nil {
 		return newPathError("Remove", path, 400)
