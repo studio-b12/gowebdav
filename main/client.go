@@ -18,6 +18,7 @@ func Fail(err interface{}) {
 		fmt.Println(" LIST, PROPFIND:")
 		fmt.Println(" RM, DELETE, DEL:")
 		fmt.Println(" MKDIR, MKCOL:")
+		fmt.Println(" MKDIRALL, MKCOLALL:")
 	}
 	os.Exit(-1)
 }
@@ -65,6 +66,13 @@ func main() {
 					fmt.Println(err)
 				} else {
 					fmt.Println("MkDir: " + path)
+				}
+
+			case "MKCOLALL", "MKDIRALL":
+				if err := c.MkdirAll(path, 0); err != nil {
+					fmt.Println(err)
+				} else {
+					fmt.Println("MkDirAll: " + path)
 				}
 
 			default: Fail(nil)

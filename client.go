@@ -143,6 +143,29 @@ func (c *Client) Mkdir(path string, _ os.FileMode) error {
 	}
 }
 
+func (c *Client) MkdirAll(path string, _ os.FileMode) error {
+	path = FixSlashes(path)
+	status := c.mkcol(path)
+	if status == 201 {
+		return nil
+	} else if status == 409 {
+		paths := strings.Split(path, "/")
+		sub := "/"
+		for _, e := range paths {
+			if e == "" {
+				continue
+			}
+			sub += e + "/"
+			status = c.mkcol(sub)
+			if status != 201 {
+				return newPathError("MkdirAll", sub, status)
+			}
+		}
+		return nil
+	}
+
+	return newPathError("MkdirAll", path, status)
+}
 
 func (c *Client) Read(path string) {
 	fmt.Println("Read " + path)
