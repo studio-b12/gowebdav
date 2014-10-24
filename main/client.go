@@ -30,13 +30,15 @@ func main() {
 	root := flag.String("root", "URL", "WebDAV Endpoint")
 	usr := flag.String("user", "", "user")
 	pw := flag.String("pw", "", "password")
-	mm := strings.ToUpper(*(flag.String("X", "GET", "Method ...")))
-	m := &mm
+	m := flag.String("X", "GET", "Method ...")
 	flag.Parse()
 
 	if *root == "URL" {
 		Fail(nil)
 	}
+
+	M := strings.ToUpper(*m)
+	m = &M
 
 	c := d.NewClient(*root, *usr, *pw)
 	if err := c.Connect(); err != nil {
