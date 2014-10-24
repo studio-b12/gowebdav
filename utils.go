@@ -20,6 +20,10 @@ func newPathError(op string, path string, statusCode int) error {
 	return &os.PathError{op, path, errors.New(fmt.Sprintf("%d", statusCode))}
 }
 
+func newPathErrorErr(op string, path string, err error) error {
+	return &os.PathError{op, path, err}
+}
+
 func FixSlash(s string) string {
 	if !strings.HasSuffix(s, "/") {
 		s += "/"
