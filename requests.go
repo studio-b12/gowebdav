@@ -107,6 +107,13 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 	switch rs.StatusCode {
 	case 201, 204:
 		return nil
+
+	case 207:
+		// TODO handle multistat errors, worst case ...
+		log(String(rs.Body))
+
+	case 409:
+		// TODO create dst path
 	}
 
 	return newPathError(method, oldpath, rs.StatusCode)
