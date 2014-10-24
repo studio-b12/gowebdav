@@ -3,7 +3,6 @@ package gowebdav
 import (
 	"encoding/base64"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -32,19 +31,17 @@ func NewClient(uri string, user string, pw string) *Client {
 }
 
 func (c *Client) Connect() error {
-	if rs, err := c.options("/"); err == nil {
+	rs, err := c.options("/")
+	if err == nil {
 		defer rs.Body.Close()
 
 		if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
-			return errors.New(fmt.Sprintf("Bad Request: %d - %s", rs.StatusCode, c.root))
+			return newPathError("Connect", c.root, rs.StatusCode)
 		}
 
-		// TODO check PROPFIND if path is collection
-
-		return nil
-	} else {
-		return err
+		_, err = c.ReadDir("/")
 	}
+	return err
 }
 
 type props struct {

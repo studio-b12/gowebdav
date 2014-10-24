@@ -36,7 +36,7 @@ func main() {
 
 	c := d.NewClient(*root, *usr, *pw)
 	if err := c.Connect(); err != nil {
-		Fail(err)
+		Fail(fmt.Sprintf("Failed to connect due to: %s", err.Error()))
 	}
 
 	if len(flag.Args()) > 0 {
