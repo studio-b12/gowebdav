@@ -20,6 +20,8 @@ func Fail(err interface{}) {
 		fmt.Println(" RM | DELETE | DEL <PATH>")
 		fmt.Println(" MKDIR | MKCOL <PATH>")
 		fmt.Println(" MKDIRALL | MKCOLALL <PATH>")
+		fmt.Println(" MV | MOVE | RENAME <OLD_PATH> <NEW_PATH>")
+		fmt.Println(" CP | COPY <OLD_PATH> <NEW_PATH>")
 	}
 	os.Exit(-1)
 }
@@ -86,6 +88,20 @@ func main() {
 		a0 := flag.Args()[0]
 		a1 := flag.Args()[1]
 		switch *m {
+		case "RENAME", "MV", "MOVE":
+			if err := c.Rename(a0, a1, true); err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println("Rename: " + a0 + " -> " + a1)
+			}
+
+		case "COPY", "CP":
+			if err := c.Copy(a0, a1, true); err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println("Copy: " + a0 + " -> " + a1)
+			}
+
 		default:
 			Fail(nil)
 		}

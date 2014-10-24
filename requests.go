@@ -84,3 +84,30 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 
 	return parseXML(rs.Body, resp, parse)
 }
+
+func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) error {
+	rq, err := c.req(method, oldpath, nil)
+	if err != nil {
+		return newPathErrorErr(method, oldpath, err)
+	}
+
+	rq.Header.Add("Destination", Join(c.root, newpath))
+	if overwrite {
+		rq.Header.Add("Overwrite", "T")
+	} else {
+		rq.Header.Add("Overwrite", "F")
+	}
+
+	rs, err := c.c.Do(rq)
+	if err != nil {
+		return newPathErrorErr(method, oldpath, err)
+	}
+	defer rs.Body.Close()
+
+	switch rs.StatusCode {
+	case 201, 204:
+		return nil
+	}
+
+	return newPathError(method, oldpath, rs.StatusCode)
+}

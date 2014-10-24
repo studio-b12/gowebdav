@@ -176,6 +176,14 @@ func (c *Client) MkdirAll(path string, _ os.FileMode) error {
 	return newPathError("MkdirAll", path, status)
 }
 
+func (c *Client) Rename(oldpath string, newpath string, overwrite bool) error {
+	return c.copymove("MOVE", oldpath, newpath, overwrite)
+}
+
+func (c *Client) Copy(oldpath string, newpath string, overwrite bool) error {
+	return c.copymove("COPY", oldpath, newpath, overwrite)
+}
+
 func (c *Client) Read(path string) {
 	fmt.Println("Read " + path)
 }
