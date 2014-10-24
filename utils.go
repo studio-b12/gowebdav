@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,10 @@ import (
 
 func Error(r *http.Response) error {
 	return errors.New(fmt.Sprintf("%s - %s %s", r.Status, r.Request.Method, r.Request.URL.String()))
+}
+
+func newPathError(op string, path string, statusCode int) error {
+	return &os.PathError{op, path, errors.New(fmt.Sprintf("%d", statusCode))}
 }
 
 func FixSlash(s string) string {
