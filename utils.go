@@ -65,16 +65,19 @@ func parseModified(s *string) time.Time {
 	return time.Unix(0, 0)
 }
 
-func parseXML(data io.Reader, resp interface{}, parse func(resp interface{})) {
+func parseXML(data io.Reader, resp interface{}, parse func(resp interface{}) error) error {
 	decoder := xml.NewDecoder(data)
 	for t, _ := decoder.Token(); t != nil; t, _ = decoder.Token() {
 		switch se := t.(type) {
 		case xml.StartElement:
 			if se.Name.Local == "response" {
 				if e := decoder.DecodeElement(resp, &se); e == nil {
-					parse(resp)
+					if err := parse(resp); err != nil {
+						return err
+					}
 				}
 			}
 		}
 	}
+	return nil
 }

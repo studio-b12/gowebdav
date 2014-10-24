@@ -72,13 +72,16 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 	path = FixSlashes(path)
 	files := make([]os.FileInfo, 0)
 	skipSelf := true
-	parse := func(resp interface{}) {
+	parse := func(resp interface{}) error {
 		r := resp.(*response)
 
 		if skipSelf {
 			skipSelf = false
-			r.Props = nil
-			return
+			if p := getProps(r, "200"); p != nil && p.Type.Local == "collection" {
+				r.Props = nil
+				return nil
+			}
+			return newPathError("ReadDir", path, 405)
 		}
 
 		if p := getProps(r, "200"); p != nil {
@@ -101,6 +104,7 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 		}
 
 		r.Props = nil
+		return nil
 	}
 
 	err := c.propfind(path, false,
@@ -114,8 +118,11 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 		</d:propfind>`,
 		&response{},
 		parse)
+
 	if err != nil {
-		err = &os.PathError{"ReadDir", path, err}
+		if _, ok := err.(*os.PathError); !ok {
+			err = &os.PathError{"ReadDir", path, err}
+		}
 	}
 	return files, err
 }

@@ -55,7 +55,7 @@ func (c *Client) options(path string) (*http.Response, error) {
 	return c.c.Do(rq)
 }
 
-func (c *Client) propfind(path string, self bool, body string, resp interface{}, parse func(resp interface{})) error {
+func (c *Client) propfind(path string, self bool, body string, resp interface{}, parse func(resp interface{}) error) error {
 	rq, err := c.req("PROPFIND", path, strings.NewReader(body))
 	if err != nil {
 		return err
@@ -82,7 +82,5 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 		return errors.New(fmt.Sprintf("%s - %s %s", rs.Status, rq.Method, rq.URL.String()))
 	}
 
-	parseXML(rs.Body, resp, parse)
-
-	return nil
+	return parseXML(rs.Body, resp, parse)
 }
