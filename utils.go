@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+func log(msg interface{}) {
+	fmt.Println(msg)
+}
+
 func Error(r *http.Response) error {
 	return errors.New(fmt.Sprintf("%s - %s %s", r.Status, r.Request.Method, r.Request.URL.String()))
 }
