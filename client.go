@@ -69,7 +69,6 @@ func getProps(r *response, status string) *props {
 }
 
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
-	// TODO return newPathError
 	path = FixSlashes(path)
 	files := make([]os.FileInfo, 0)
 	skipSelf := true
@@ -115,21 +114,23 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 		</d:propfind>`,
 		&response{},
 		parse)
+	if err != nil {
+		err = &os.PathError{"ReadDir", path, err}
+	}
 	return files, err
 }
 
 func (c *Client) Remove(path string) error {
-	// TODO return newPathError
 	rs, err := c.reqDo("DELETE", path, nil)
 	if err != nil {
-		return err
+		return newPathError("Remove", path, 400)
 	}
 	defer rs.Body.Close()
 
 	if rs.StatusCode == 200 {
 		return nil
 	} else {
-		return Error(rs)
+		return newPathError("Remove", path, rs.StatusCode)
 	}
 }
 

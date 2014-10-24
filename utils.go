@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -15,10 +14,6 @@ import (
 
 func log(msg interface{}) {
 	fmt.Println(msg)
-}
-
-func Error(r *http.Response) error {
-	return errors.New(fmt.Sprintf("%s - %s %s", r.Status, r.Request.Method, r.Request.URL.String()))
 }
 
 func newPathError(op string, path string, statusCode int) error {
