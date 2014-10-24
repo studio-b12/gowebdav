@@ -5,6 +5,7 @@ import (
 	"flag"
 	"os"
 	"fmt"
+	"strings"
 )
 
 func Fail(err interface{}) {
@@ -14,11 +15,11 @@ func Fail(err interface{}) {
 		fmt.Println("Usage: client FLAGS ARGS")
 		fmt.Println("Flags:")
 		flag.PrintDefaults()
-		fmt.Println("Method:")
-		fmt.Println(" LIST, PROPFIND:")
-		fmt.Println(" RM, DELETE, DEL:")
-		fmt.Println(" MKDIR, MKCOL:")
-		fmt.Println(" MKDIRALL, MKCOLALL:")
+		fmt.Println("Method <ARGS>")
+		fmt.Println(" LS | LIST | PROPFIND <PATH>")
+		fmt.Println(" RM | DELETE | DEL <PATH>")
+		fmt.Println(" MKDIR | MKCOL <PATH>")
+		fmt.Println(" MKDIRALL | MKCOLALL <PATH>")
 	}
 	os.Exit(-1)
 }
@@ -27,7 +28,8 @@ func main() {
 	root := flag.String("root", "URL", "WebDAV Endpoint")
 	usr := flag.String("user", "", "user")
 	pw := flag.String("pw", "", "password")
-	m := flag.String("X", "GET", "Method ...")
+	mm := strings.ToUpper(*(flag.String("X", "GET", "Method ...")))
+	m := &mm
 	flag.Parse()
 
 	if *root == "URL" {
@@ -38,11 +40,11 @@ func main() {
 	if err := c.Connect(); err != nil {
 		Fail(fmt.Sprintf("Failed to connect due to: %s", err.Error()))
 	}
-
-	if len(flag.Args()) > 0 {
+	alen := len(flag.Args())
+	if alen == 1 {
 		path := flag.Args()[0]
 		switch *m {
-			case "LIST", "PROPFIND":
+			case "LS", "LIST", "PROPFIND":
 				if files, err := c.ReadDir(path); err == nil {
 					fmt.Println(fmt.Sprintf("ReadDir: '%s' entries: %d ", path, len(files)))
 					for _, f := range files {
@@ -77,8 +79,14 @@ func main() {
 
 			default: Fail(nil)
 		}
+
+	} else if alen == 2 {
+		a0 := flag.Args()[0]
+		a1 := flag.Args()[1]
+		switch *m {
+			default: Fail(nil)
+		}
 	} else {
 		Fail(nil)
 	}
 }
-
