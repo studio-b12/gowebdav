@@ -23,10 +23,11 @@ func (f File) Size() int64 {
 }
 
 func (f File) Mode() os.FileMode {
+	// TODO check webdav perms
 	if f.isdir {
-		return 0777 | os.ModeDir
+		return 0775 | os.ModeDir
 	} else {
-		return 0622
+		return 0664
 	}
 }
 
