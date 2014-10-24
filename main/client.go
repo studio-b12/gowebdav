@@ -1,10 +1,10 @@
 package main
 
 import (
-	d "gowebdav"
 	"flag"
-	"os"
 	"fmt"
+	d "gowebdav"
+	"os"
 	"strings"
 )
 
@@ -44,47 +44,50 @@ func main() {
 	if alen == 1 {
 		path := flag.Args()[0]
 		switch *m {
-			case "LS", "LIST", "PROPFIND":
-				if files, err := c.ReadDir(path); err == nil {
-					fmt.Println(fmt.Sprintf("ReadDir: '%s' entries: %d ", path, len(files)))
-					for _, f := range files {
-						fmt.Println(f)
-					}
-				} else {
-					fmt.Println(err)
+		case "LS", "LIST", "PROPFIND":
+			if files, err := c.ReadDir(path); err == nil {
+				fmt.Println(fmt.Sprintf("ReadDir: '%s' entries: %d ", path, len(files)))
+				for _, f := range files {
+					fmt.Println(f)
 				}
+			} else {
+				fmt.Println(err)
+			}
 
-			case "GET": c.Read(path)
+		case "GET":
+			c.Read(path)
 
-			case "DELETE", "RM", "DEL":
-				if err := c.Remove(path); err != nil {
-					fmt.Println(err)
-				} else {
-					fmt.Println("Remove: " + path)
-				}
+		case "DELETE", "RM", "DEL":
+			if err := c.Remove(path); err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println("Remove: " + path)
+			}
 
-			case "MKCOL", "MKDIR":
-				if err := c.Mkdir(path, 0); err != nil {
-					fmt.Println(err)
-				} else {
-					fmt.Println("MkDir: " + path)
-				}
+		case "MKCOL", "MKDIR":
+			if err := c.Mkdir(path, 0); err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println("MkDir: " + path)
+			}
 
-			case "MKCOLALL", "MKDIRALL":
-				if err := c.MkdirAll(path, 0); err != nil {
-					fmt.Println(err)
-				} else {
-					fmt.Println("MkDirAll: " + path)
-				}
+		case "MKCOLALL", "MKDIRALL":
+			if err := c.MkdirAll(path, 0); err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println("MkDirAll: " + path)
+			}
 
-			default: Fail(nil)
+		default:
+			Fail(nil)
 		}
 
 	} else if alen == 2 {
 		a0 := flag.Args()[0]
 		a1 := flag.Args()[1]
 		switch *m {
-			default: Fail(nil)
+		default:
+			Fail(nil)
 		}
 	} else {
 		Fail(nil)
