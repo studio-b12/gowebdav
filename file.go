@@ -45,8 +45,8 @@ func (f File) Sys() interface{} {
 
 func (f File) String() string {
 	if f.isdir {
-		return fmt.Sprintf("Dir : %s", f.path)
+		return fmt.Sprintf("Dir : '%s' - '%s'", f.path, f.name)
 	} else {
-		return fmt.Sprintf("File: %s SIZE: %d MODIFIED: %s", f.path, f.size, f.modified.String())
+		return fmt.Sprintf("File: '%s' SIZE: %d MODIFIED: %s", f.path, f.size, f.modified.String())
 	}
 }
