@@ -125,6 +125,53 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 	return files, err
 }
 
+func (c *Client) Stat(path string) (os.FileInfo, error) {
+	var f *File = nil
+	parse := func(resp interface{}) error {
+		r := resp.(*response)
+		if p := getProps(r, "200"); p != nil && f == nil {
+			f = new(File)
+			f.name = p.Name
+			f.path = path
+
+			if p.Type.Local == "collection" {
+				if !strings.HasSuffix(f.path, "/") {
+					f.path += "/"
+				}
+				f.size = 0
+				f.modified = time.Unix(0, 0)
+				f.isdir = true
+			} else {
+				f.size = parseInt64(&p.Size)
+				f.modified = parseModified(&p.Modified)
+				f.isdir = false
+			}
+		}
+
+		r.Props = nil
+		return nil
+	}
+
+	err := c.propfind(path, true,
+		`<d:propfind xmlns:d='DAV:'>
+			<d:prop>
+				<d:displayname/>
+				<d:resourcetype/>
+				<d:getcontentlength/>
+				<d:getlastmodified/>
+			</d:prop>
+		</d:propfind>`,
+		&response{},
+		parse)
+
+	if err != nil {
+		if _, ok := err.(*os.PathError); !ok {
+			err = &os.PathError{"ReadDir", path, err}
+		}
+	}
+	return f, err
+}
+
 func (c *Client) Remove(path string) error {
 	return c.RemoveAll(path)
 }

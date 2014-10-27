@@ -26,7 +26,7 @@ func Fail(err interface{}) {
 		fmt.Println(" CP | COPY <OLD_PATH> <NEW_PATH>")
 		fmt.Println(" GET | PULL | READ <PATH>")
 		fmt.Println(" PUT | PUSH | WRITE <PATH> <FILE>")
-
+		fmt.Println(" STAT <PATH>")
 	}
 	os.Exit(-1)
 }
@@ -69,6 +69,13 @@ func main() {
 				for _, f := range files {
 					fmt.Println(f)
 				}
+			} else {
+				fmt.Println(err)
+			}
+
+		case "STAT":
+			if file, err := c.Stat(path); err == nil {
+				fmt.Println(file)
 			} else {
 				fmt.Println(err)
 			}
