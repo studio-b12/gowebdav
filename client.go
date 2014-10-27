@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/xml"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -185,14 +186,22 @@ func (c *Client) Copy(oldpath string, newpath string, overwrite bool) error {
 }
 
 func (c *Client) Read(path string) ([]byte, error) {
+	if stream, err := c.ReadStream(path); err == nil {
+		defer stream.Close()
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(stream)
+		return buf.Bytes(), nil
+	} else {
+		return nil, err
+	}
+}
+
+func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 	rs, err := c.reqDo("GET", path, nil)
 	if err != nil {
-		return nil, newPathErrorErr("Read", path, err)
+		return nil, newPathErrorErr("ReadStream", path, err)
 	}
-	defer rs.Body.Close()
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(rs.Body)
-	return buf.Bytes(), nil
+	return rs.Body, nil
 }
 
 func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
@@ -216,4 +225,16 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 		}
 	}
 	return newPathError("Write", path, s)
+}
+
+func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error {
+	// TODO check if parent collection exists
+	s := c.put(path, stream)
+	switch s {
+	case 200, 201:
+		return nil
+
+	default:
+		return newPathError("WriteStream", path, s)
+	}
 }

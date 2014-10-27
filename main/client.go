@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -132,11 +131,11 @@ func main() {
 			}
 
 		case "PUT", "PUSH", "WRITE":
-			bytes, err := getBytes(a1)
+			stream, err := getStream(a1)
 			if err != nil {
 				Fail(err)
 			}
-			if err := c.Write(a0, bytes, 0644); err != nil {
+			if err := c.WriteStream(a0, stream, 0644); err != nil {
 				fmt.Println(err)
 			} else {
 				fmt.Println(fmt.Sprintf("Written: '%s' -> %s", a1, a0))
@@ -150,7 +149,7 @@ func main() {
 	}
 }
 
-func getBytes(pathOrString string) ([]byte, error) {
+func getStream(pathOrString string) (io.ReadCloser, error) {
 	fi, err := os.Stat(pathOrString)
 	if err == nil {
 		if fi.IsDir() {
@@ -158,15 +157,18 @@ func getBytes(pathOrString string) ([]byte, error) {
 		}
 		f, err := os.Open(pathOrString)
 		if err == nil {
-			defer f.Close()
-			buf := bytes.NewBuffer(nil)
-			_, err := io.Copy(buf, f)
-			if err == nil {
-				return buf.Bytes(), nil
-			}
+			return f, nil
 		}
 		return nil, &os.PathError{"Open", pathOrString, err}
 	} else {
-		return []byte(pathOrString), nil
+		return nopCloser{strings.NewReader(pathOrString)}, nil
 	}
+}
+
+type nopCloser struct {
+	io.Reader
+}
+
+func (nopCloser) Close() error {
+	return nil
 }
