@@ -130,13 +130,13 @@ func (c *Client) Remove(path string) error {
 }
 
 func (c *Client) RemoveAll(path string) error {
-	rs, err := c.reqDo("DELETE", path, nil)
+	rs, err := c.req("DELETE", path, nil, nil)
 	if err != nil {
 		return newPathError("Remove", path, 400)
 	}
 	defer rs.Body.Close()
 
-	if rs.StatusCode == 200 {
+	if rs.StatusCode == 200 || rs.StatusCode == 404 {
 		return nil
 	} else {
 		return newPathError("Remove", path, rs.StatusCode)
@@ -197,7 +197,7 @@ func (c *Client) Read(path string) ([]byte, error) {
 }
 
 func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
-	rs, err := c.reqDo("GET", path, nil)
+	rs, err := c.req("GET", path, nil, nil)
 	if err != nil {
 		return nil, newPathErrorErr("ReadStream", path, err)
 	}
