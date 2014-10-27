@@ -71,7 +71,7 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 	return parseXML(rs.Body, resp, parse)
 }
 
-func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) error {
+func (c *Client) doCopyMove(method string, oldpath string, newpath string, overwrite bool) (int, io.ReadCloser) {
 	rs, err := c.req(method, oldpath, nil, func(rq *http.Request) {
 		rq.Header.Add("Destination", Join(c.root, newpath))
 		if overwrite {
@@ -81,24 +81,30 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 		}
 	})
 	if err != nil {
-		return newPathErrorErr(method, oldpath, err)
+		return 400, nil
 	}
-	defer rs.Body.Close()
+	return rs.StatusCode, rs.Body
+}
 
-	// TODO handle result outside ...
-	switch rs.StatusCode {
+func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) error {
+	s, data := c.doCopyMove(method, oldpath, newpath, overwrite)
+	if data != nil {
+		defer data.Close()
+	}
+
+	switch s {
 	case 201, 204:
 		return nil
 
 	case 207:
 		// TODO handle multistat errors, worst case ...
-		log(String(rs.Body))
+		log(fmt.Sprintf(" TODO handle %s - %s multistatus result %s", method, oldpath, String(data)))
 
 	case 409:
 		// TODO create dst path
 	}
 
-	return newPathError(method, oldpath, rs.StatusCode)
+	return newPathError(method, oldpath, s)
 }
 
 func (c *Client) put(path string, stream io.Reader) int {
