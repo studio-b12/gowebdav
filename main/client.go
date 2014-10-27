@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	d "gowebdav"
+	"io"
 	"os"
 	"strings"
 )
@@ -22,8 +25,21 @@ func Fail(err interface{}) {
 		fmt.Println(" MKDIRALL | MKCOLALL <PATH>")
 		fmt.Println(" MV | MOVE | RENAME <OLD_PATH> <NEW_PATH>")
 		fmt.Println(" CP | COPY <OLD_PATH> <NEW_PATH>")
+		fmt.Println(" GET | PULL | READ <PATH>")
+		fmt.Println(" PUT | PUSH | WRITE <PATH> <FILE>")
+
 	}
 	os.Exit(-1)
+}
+
+func writeFile(path string, bytes []byte, mode os.FileMode) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.Write(bytes)
+	return err
 }
 
 func main() {
@@ -58,8 +74,19 @@ func main() {
 				fmt.Println(err)
 			}
 
-		case "GET":
-			c.Read(path)
+		case "GET", "PULL", "READ":
+			if bytes, err := c.Read(path); err == nil {
+				if lidx := strings.LastIndex(path, "/"); lidx != -1 {
+					path = path[lidx+1:]
+				}
+				if err := writeFile(path, bytes, 0644); err != nil {
+					fmt.Println(err)
+				} else {
+					fmt.Println(fmt.Sprintf("Written %d bytes to: %s", len(bytes), path))
+				}
+			} else {
+				fmt.Println(err)
+			}
 
 		case "DELETE", "RM", "DEL":
 			if err := c.Remove(path); err != nil {
@@ -104,10 +131,42 @@ func main() {
 				fmt.Println("Copy: " + a0 + " -> " + a1)
 			}
 
+		case "PUT", "PUSH", "WRITE":
+			bytes, err := getBytes(a1)
+			if err != nil {
+				Fail(err)
+			}
+			if err := c.Write(a0, bytes, 0644); err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println(fmt.Sprintf("Written: '%s' -> %s", a1, a0))
+			}
+
 		default:
 			Fail(nil)
 		}
 	} else {
 		Fail(nil)
+	}
+}
+
+func getBytes(pathOrString string) ([]byte, error) {
+	fi, err := os.Stat(pathOrString)
+	if err == nil {
+		if fi.IsDir() {
+			return nil, &os.PathError{"Open", pathOrString, errors.New("Path: '" + pathOrString + "' is a directory")}
+		}
+		f, err := os.Open(pathOrString)
+		if err == nil {
+			defer f.Close()
+			buf := bytes.NewBuffer(nil)
+			_, err := io.Copy(buf, f)
+			if err == nil {
+				return buf.Bytes(), nil
+			}
+		}
+		return nil, &os.PathError{"Open", pathOrString, err}
+	} else {
+		return []byte(pathOrString), nil
 	}
 }

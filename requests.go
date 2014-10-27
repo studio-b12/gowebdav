@@ -118,3 +118,12 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 
 	return newPathError(method, oldpath, rs.StatusCode)
 }
+
+func (c *Client) put(path string, stream io.Reader) int {
+	rs, err := c.reqDo("PUT", path, stream)
+	if err != nil {
+		return 400
+	}
+	defer rs.Body.Close()
+	return rs.StatusCode
+}

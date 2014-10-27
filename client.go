@@ -1,9 +1,9 @@
 package gowebdav
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/xml"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -184,6 +184,36 @@ func (c *Client) Copy(oldpath string, newpath string, overwrite bool) error {
 	return c.copymove("COPY", oldpath, newpath, overwrite)
 }
 
-func (c *Client) Read(path string) {
-	fmt.Println("Read " + path)
+func (c *Client) Read(path string) ([]byte, error) {
+	rs, err := c.reqDo("GET", path, nil)
+	if err != nil {
+		return nil, newPathErrorErr("Read", path, err)
+	}
+	defer rs.Body.Close()
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(rs.Body)
+	return buf.Bytes(), nil
+}
+
+func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
+	s := c.put(path, bytes.NewReader(data))
+	switch s {
+
+	case 200, 201:
+		return nil
+
+	case 409:
+		if idx := strings.LastIndex(path, "/"); idx == -1 {
+			// faulty root
+			return newPathError("Write", path, 500)
+		} else {
+			if err := c.MkdirAll(path[0:idx+1], 0755); err == nil {
+				s = c.put(path, bytes.NewReader(data))
+				if s == 200 || s == 201 {
+					return nil
+				}
+			}
+		}
+	}
+	return newPathError("Write", path, s)
 }
