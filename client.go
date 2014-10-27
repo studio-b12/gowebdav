@@ -34,7 +34,7 @@ func NewClient(uri string, user string, pw string) *Client {
 func (c *Client) Connect() error {
 	rs, err := c.options("/")
 	if err == nil {
-		defer rs.Body.Close()
+		rs.Body.Close()
 
 		if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
 			return newPathError("Connect", c.root, rs.StatusCode)
@@ -134,7 +134,7 @@ func (c *Client) RemoveAll(path string) error {
 	if err != nil {
 		return newPathError("Remove", path, 400)
 	}
-	defer rs.Body.Close()
+	rs.Body.Close()
 
 	if rs.StatusCode == 200 || rs.StatusCode == 404 {
 		return nil

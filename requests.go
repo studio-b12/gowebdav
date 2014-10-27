@@ -31,7 +31,7 @@ func (c *Client) mkcol(path string) int {
 	if err != nil {
 		return 400
 	}
-	defer rs.Body.Close()
+	rs.Body.Close()
 
 	if rs.StatusCode == 201 || rs.StatusCode == 405 {
 		return 201
@@ -112,6 +112,6 @@ func (c *Client) put(path string, stream io.Reader) int {
 	if err != nil {
 		return 400
 	}
-	defer rs.Body.Close()
+	rs.Body.Close()
 	return rs.StatusCode
 }
