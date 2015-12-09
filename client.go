@@ -6,7 +6,9 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
+	pathpkg "path"
 	"strings"
 	"time"
 )
@@ -84,7 +86,11 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 
 		if p := getProps(r, "200"); p != nil {
 			f := new(File)
-			f.name = p.Name
+			if ps, err := url.QueryUnescape(r.Href); err == nil {
+				f.name = pathpkg.Base(ps)
+			} else {
+				f.name = p.Name
+			}
 			f.path = path + f.name
 
 			if p.Type.Local == "collection" {
