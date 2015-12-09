@@ -92,15 +92,14 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 				f.name = p.Name
 			}
 			f.path = path + f.name
+			f.modified = parseModified(&p.Modified)
 
 			if p.Type.Local == "collection" {
 				f.path += "/"
 				f.size = 0
-				f.modified = parseModified(&p.Modified)
 				f.isdir = true
 			} else {
 				f.size = parseInt64(&p.Size)
-				f.modified = parseModified(&p.Modified)
 				f.isdir = false
 			}
 
