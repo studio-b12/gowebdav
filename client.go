@@ -33,6 +33,10 @@ func NewClient(uri string, user string, pw string) *Client {
 	return c
 }
 
+func (c *Client) SetHeader(key, value string) {
+	c.headers.Add(key, value)
+}
+
 func (c *Client) Connect() error {
 	rs, err := c.options("/")
 	if err == nil {
