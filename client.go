@@ -82,6 +82,7 @@ type props struct {
 	Size     string   `xml:"DAV: prop>getcontentlength,omitempty"`
 	Modified string   `xml:"DAV: prop>getlastmodified,omitempty"`
 }
+
 type response struct {
 	Href  string  `xml:"DAV: href"`
 	Props []props `xml:"DAV: propstat"`
@@ -323,7 +324,7 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 	s := c.put(path, bytes.NewReader(data))
 	switch s {
 
-	case 200, 201:
+	case 200, 201, 204:
 		return nil
 
 	case 409:
@@ -349,7 +350,7 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error
 	// TODO check if parent collection exists
 	s := c.put(path, stream)
 	switch s {
-	case 200, 201:
+	case 200, 201, 204:
 		return nil
 
 	default:
