@@ -67,11 +67,6 @@ func (c *Client) Connect() error {
 		return newPathError("Connect", c.root, rs.StatusCode)
 	}
 
-	_, err = c.ReadDir("/")
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
