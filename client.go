@@ -37,6 +37,10 @@ func (c *Client) SetHeader(key, value string) {
 	c.headers.Add(key, value)
 }
 
+func (c *Client) SetTransport(transport http.RoundTripper) {
+	c.c.Transport = transport
+}
+
 func (c *Client) Connect() error {
 	rs, err := c.options("/")
 	if err == nil {
