@@ -13,12 +13,14 @@ import (
 	"time"
 )
 
+// Client defines our structure
 type Client struct {
 	root    string
 	headers http.Header
 	c       *http.Client
 }
 
+// NewClient creates a new instance of client
 func NewClient(uri string, user string, pw string) *Client {
 	c := &Client{uri, make(http.Header), &http.Client{}}
 
@@ -33,30 +35,43 @@ func NewClient(uri string, user string, pw string) *Client {
 	return c
 }
 
+// SetHeaders lets us set arbitrary headers for a given client
 func (c *Client) SetHeader(key, value string) {
 	c.headers.Add(key, value)
 }
 
+// SetTimeout exposes the ability to set a time limit for requests
 func (c *Client) SetTimeout(timeout time.Duration) {
 	c.c.Timeout = timeout
 }
 
+// SetTransport exposes the ability to define custom transports
 func (c *Client) SetTransport(transport http.RoundTripper) {
 	c.c.Transport = transport
 }
 
+// Connect connects to our dav server
 func (c *Client) Connect() error {
 	rs, err := c.options("/")
-	if err == nil {
-		rs.Body.Close()
-
-		if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
-			return newPathError("Connect", c.root, rs.StatusCode)
-		}
-
-		_, err = c.ReadDir("/")
+	if err != nil {
+		return err
 	}
-	return err
+
+	err = rs.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
+		return newPathError("Connect", c.root, rs.StatusCode)
+	}
+
+	_, err = c.ReadDir("/")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type props struct {
@@ -73,13 +88,14 @@ type response struct {
 
 func getProps(r *response, status string) *props {
 	for _, prop := range r.Props {
-		if strings.Index(prop.Status, status) != -1 {
+		if strings.Contains(prop.Status, status) {
 			return &prop
 		}
 	}
 	return nil
 }
 
+// ReadDir reads the contents of a remote directory
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 	path = FixSlashes(path)
 	files := make([]os.FileInfo, 0)
@@ -136,14 +152,19 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			err = &os.PathError{"ReadDir", path, err}
+			err = &os.PathError{
+				Op:   "ReadDir",
+				Path: path,
+				Err:  err,
+			}
 		}
 	}
 	return files, err
 }
 
+// Stat returns the file stats for a specified path
 func (c *Client) Stat(path string) (os.FileInfo, error) {
-	var f *File = nil
+	var f *File
 	parse := func(resp interface{}) error {
 		r := resp.(*response)
 		if p := getProps(r, "200"); p != nil && f == nil {
@@ -183,40 +204,51 @@ func (c *Client) Stat(path string) (os.FileInfo, error) {
 
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			err = &os.PathError{"ReadDir", path, err}
+			err = &os.PathError{
+				Op:   "ReadDir",
+				Path: path,
+				Err:  err,
+			}
 		}
 	}
 	return f, err
 }
 
+// Remove removes a remote file
 func (c *Client) Remove(path string) error {
 	return c.RemoveAll(path)
 }
 
+// RemoveAll removes remote files
 func (c *Client) RemoveAll(path string) error {
 	rs, err := c.req("DELETE", path, nil, nil)
 	if err != nil {
 		return newPathError("Remove", path, 400)
 	}
-	rs.Body.Close()
+	err = rs.Body.Close()
+	if err != nil {
+		return err
+	}
 
 	if rs.StatusCode == 200 || rs.StatusCode == 204 || rs.StatusCode == 404 {
 		return nil
-	} else {
-		return newPathError("Remove", path, rs.StatusCode)
 	}
+
+	return newPathError("Remove", path, rs.StatusCode)
 }
 
+// Mkdir makes a directory
 func (c *Client) Mkdir(path string, _ os.FileMode) error {
 	path = FixSlashes(path)
 	status := c.mkcol(path)
 	if status == 201 {
 		return nil
-	} else {
-		return newPathError("Mkdir", path, status)
 	}
+
+	return newPathError("Mkdir", path, status)
 }
 
+// MkdirAll like mkdir -p, but for webdav
 func (c *Client) MkdirAll(path string, _ os.FileMode) error {
 	path = FixSlashes(path)
 	status := c.mkcol(path)
@@ -241,25 +273,36 @@ func (c *Client) MkdirAll(path string, _ os.FileMode) error {
 	return newPathError("MkdirAll", path, status)
 }
 
+// Rename moves a file from A to B
 func (c *Client) Rename(oldpath string, newpath string, overwrite bool) error {
 	return c.copymove("MOVE", oldpath, newpath, overwrite)
 }
 
+// Copy copies a file from A to B
 func (c *Client) Copy(oldpath string, newpath string, overwrite bool) error {
 	return c.copymove("COPY", oldpath, newpath, overwrite)
 }
 
+// Read reads the contents of a remote file
 func (c *Client) Read(path string) ([]byte, error) {
-	if stream, err := c.ReadStream(path); err == nil {
-		defer stream.Close()
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(stream)
-		return buf.Bytes(), nil
-	} else {
+	var stream io.ReadCloser
+	var err error
+
+	defer stream.Close()
+
+	if stream, err = c.ReadStream(path); err != nil {
 		return nil, err
 	}
+
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(stream)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
+// ReadStream reads the stream for a given path
 func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 	rs, err := c.req("GET", path, nil, nil)
 	if err != nil {
@@ -273,6 +316,7 @@ func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 	}
 }
 
+// Write writes data to a given path
 func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 	s := c.put(path, bytes.NewReader(data))
 	switch s {
@@ -292,10 +336,13 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 				}
 			}
 		}
+
 	}
+
 	return newPathError("Write", path, s)
 }
 
+// WriteStream writes a stream
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error {
 	// TODO check if parent collection exists
 	s := c.put(path, stream)
