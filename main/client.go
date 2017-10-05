@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func Fail(err interface{}) {
+func fail(err interface{}) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -50,7 +50,7 @@ func main() {
 	flag.Parse()
 
 	if *root == "URL" {
-		Fail(nil)
+		fail(nil)
 	}
 
 	M := strings.ToUpper(*m)
@@ -58,7 +58,7 @@ func main() {
 
 	c := d.NewClient(*root, *usr, *pw)
 	if err := c.Connect(); err != nil {
-		Fail(fmt.Sprintf("Failed to connect due to: %s", err.Error()))
+		fail(fmt.Sprintf("Failed to connect due to: %s", err.Error()))
 	}
 	alen := len(flag.Args())
 	if alen == 1 {
@@ -117,7 +117,7 @@ func main() {
 			}
 
 		default:
-			Fail(nil)
+			fail(nil)
 		}
 
 	} else if alen == 2 {
@@ -141,7 +141,7 @@ func main() {
 		case "PUT", "PUSH", "WRITE":
 			stream, err := getStream(a1)
 			if err != nil {
-				Fail(err)
+				fail(err)
 			}
 			if err := c.WriteStream(a0, stream, 0644); err != nil {
 				fmt.Println(err)
@@ -150,10 +150,10 @@ func main() {
 			}
 
 		default:
-			Fail(nil)
+			fail(nil)
 		}
 	} else {
-		Fail(nil)
+		fail(nil)
 	}
 }
 
@@ -161,16 +161,23 @@ func getStream(pathOrString string) (io.ReadCloser, error) {
 	fi, err := os.Stat(pathOrString)
 	if err == nil {
 		if fi.IsDir() {
-			return nil, &os.PathError{"Open", pathOrString, errors.New("Path: '" + pathOrString + "' is a directory")}
+			return nil, &os.PathError{
+				Op:   "Open",
+				Path: pathOrString,
+				Err:  errors.New("Path: '" + pathOrString + "' is a directory"),
+			}
 		}
 		f, err := os.Open(pathOrString)
 		if err == nil {
 			return f, nil
 		}
-		return nil, &os.PathError{"Open", pathOrString, err}
-	} else {
-		return nopCloser{strings.NewReader(pathOrString)}, nil
+		return nil, &os.PathError{
+			Op:   "Open",
+			Path: pathOrString,
+			Err:  err,
+		}
 	}
+	return nopCloser{strings.NewReader(pathOrString)}, nil
 }
 
 type nopCloser struct {
