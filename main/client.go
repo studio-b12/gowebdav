@@ -33,10 +33,11 @@ func Fail(err interface{}) {
 
 func writeFile(path string, bytes []byte, mode os.FileMode) error {
 	f, err := os.Create(path)
+	defer f.Close()
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+
 	_, err = f.Write(bytes)
 	return err
 }

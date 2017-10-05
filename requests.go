@@ -1,14 +1,13 @@
 package gowebdav
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 )
 
-func (c *Client) req(method string, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
+func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
 	r, err := http.NewRequest(method, Join(c.root, path), body)
 	if err != nil {
 		return nil, err
@@ -28,10 +27,10 @@ func (c *Client) req(method string, path string, body io.Reader, intercept func(
 
 func (c *Client) mkcol(path string) int {
 	rs, err := c.req("MKCOL", path, nil, nil)
+	defer rs.Body.Close()
 	if err != nil {
 		return 400
 	}
-	rs.Body.Close()
 
 	if rs.StatusCode == 201 || rs.StatusCode == 405 {
 		return 201
@@ -59,13 +58,13 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 		// TODO add support for 'gzip,deflate;q=0.8,q=0.7'
 		rq.Header.Add("Accept-Encoding", "")
 	})
+	defer rs.Body.Close()
 	if err != nil {
 		return err
 	}
-	defer rs.Body.Close()
 
 	if rs.StatusCode != 207 {
-		return errors.New(fmt.Sprintf("%s - %s %s", rs.Status, "PROPFIND", path))
+		return fmt.Errorf("%s - %s %s", rs.Status, "PROPFIND", path)
 	}
 
 	return parseXML(rs.Body, resp, parse)
@@ -88,9 +87,7 @@ func (c *Client) doCopyMove(method string, oldpath string, newpath string, overw
 
 func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) error {
 	s, data := c.doCopyMove(method, oldpath, newpath, overwrite)
-	if data != nil {
-		defer data.Close()
-	}
+	defer data.Close()
 
 	switch s {
 	case 201, 204:
@@ -109,9 +106,10 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 
 func (c *Client) put(path string, stream io.Reader) int {
 	rs, err := c.req("PUT", path, stream, nil)
+	defer rs.Body.Close()
 	if err != nil {
 		return 400
 	}
-	rs.Body.Close()
+
 	return rs.StatusCode
 }

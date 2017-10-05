@@ -3,7 +3,6 @@ package gowebdav
 import (
 	"bytes"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,13 +16,22 @@ func log(msg interface{}) {
 }
 
 func newPathError(op string, path string, statusCode int) error {
-	return &os.PathError{op, path, errors.New(fmt.Sprintf("%d", statusCode))}
+	return &os.PathError{
+		Op:   op,
+		Path: path,
+		Err:  fmt.Errorf("%d", statusCode),
+	}
 }
 
 func newPathErrorErr(op string, path string, err error) error {
-	return &os.PathError{op, path, err}
+	return &os.PathError{
+		Op:   op,
+		Path: path,
+		Err:  err,
+	}
 }
 
+// FixSlash appends a trailing / to our string
 func FixSlash(s string) string {
 	if !strings.HasSuffix(s, "/") {
 		s += "/"
@@ -31,6 +39,7 @@ func FixSlash(s string) string {
 	return s
 }
 
+// FixSlashes appends and prepends a / if they are missing
 func FixSlashes(s string) string {
 	if s[0] != '/' {
 		s = "/" + s
@@ -38,13 +47,16 @@ func FixSlashes(s string) string {
 	return FixSlash(s)
 }
 
+// Join joins two paths
 func Join(path0 string, path1 string) string {
 	return strings.TrimSuffix(path0, "/") + "/" + strings.TrimPrefix(path1, "/")
 }
 
+// String pulls a string out of our io.Reader
 func String(r io.Reader) string {
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(r)
+	// TODO - mkae String return an error as well
+	_, _ = buf.ReadFrom(r)
 	return buf.String()
 }
 
