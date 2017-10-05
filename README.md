@@ -33,12 +33,14 @@ Usage of gowebdav
 
                 DEL <PATH>
 
+  -netrc-file string
+        read login from netrc file (default "~/.netrc")
   -pw string
         Password [ENV.PASSWORD]
   -root string
         WebDAV Endpoint [ENV.ROOT]
   -user string
-        User [ENV.USER]
+        User [ENV.USER] (default "$USER")
 ```
 
 *gowebdav wrapper script*
@@ -98,6 +100,7 @@ included.
 * [func FixSlashes(s string) string](#FixSlashes)
 * [func Join(path0 string, path1 string) string](#Join)
 * [func PathEscape(path string) string](#PathEscape)
+* [func ReadConfig(uri, netrc string) (string, string)](#ReadConfig)
 * [func String(r io.Reader) string](#String)
 * [type Authenticator](#Authenticator)
 * [type BasicAuth](#BasicAuth)
@@ -148,7 +151,7 @@ included.
 * [PathEscape](#example_PathEscape)
 
 ##### <a name="pkg-files">Package files</a>
-[basicAuth.go](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go) [client.go](https://github.com/studio-b12/gowebdav/blob/master/client.go) [digestAuth.go](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go) [doc.go](https://github.com/studio-b12/gowebdav/blob/master/doc.go) [file.go](https://github.com/studio-b12/gowebdav/blob/master/file.go) [requests.go](https://github.com/studio-b12/gowebdav/blob/master/requests.go) [utils.go](https://github.com/studio-b12/gowebdav/blob/master/utils.go) 
+[basicAuth.go](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go) [client.go](https://github.com/studio-b12/gowebdav/blob/master/client.go) [digestAuth.go](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go) [doc.go](https://github.com/studio-b12/gowebdav/blob/master/doc.go) [file.go](https://github.com/studio-b12/gowebdav/blob/master/file.go) [netrc.go](https://github.com/studio-b12/gowebdav/blob/master/netrc.go) [requests.go](https://github.com/studio-b12/gowebdav/blob/master/requests.go) [utils.go](https://github.com/studio-b12/gowebdav/blob/master/utils.go) 
 
 ### <a name="FixSlash">func</a> [FixSlash](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=707:737#L45)
 ``` go
@@ -173,6 +176,13 @@ Join joins two paths
 func PathEscape(path string) string
 ```
 PathEscape escapes all segemnts of a given path
+
+### <a name="ReadConfig">func</a> [ReadConfig](https://github.com/studio-b12/gowebdav/blob/master/netrc.go?s=428:479#L27)
+``` go
+func ReadConfig(uri, netrc string) (string, string)
+```
+ReadConfig reads login and password configuration from ~/.netrc
+machine foo.com login username password 123456
 
 ### <a name="String">func</a> [String](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=1150:1181#L66)
 ``` go

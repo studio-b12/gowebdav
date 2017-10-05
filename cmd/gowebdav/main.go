@@ -7,6 +7,7 @@ import (
 	d "github.com/studio-b12/gowebdav"
 	"io"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 )
@@ -15,6 +16,7 @@ func main() {
 	root := flag.String("root", os.Getenv("ROOT"), "WebDAV Endpoint [ENV.ROOT]")
 	usr := flag.String("user", os.Getenv("USER"), "User [ENV.USER]")
 	pw := flag.String("pw", os.Getenv("PASSWORD"), "Password [ENV.PASSWORD]")
+	netrc := flag.String("netrc-file", filepath.Join(getHome(), ".netrc"), "read login from netrc file")
 	method := flag.String("X", "", `Method:
 	LS <PATH>
 	STAT <PATH>
@@ -40,6 +42,13 @@ func main() {
 		fail("Unsupported arguments")
 	}
 
+	if *pw == "" {
+		if u, p := d.ReadConfig(*root, *netrc); u != "" && p != "" {
+			usr = &u
+			pw = &p
+		}
+	}
+
 	c := d.NewClient(*root, *usr, *pw)
 	if err := c.Connect(); err != nil {
 		fail(fmt.Sprintf("Failed to connect due to: %s", err.Error()))
@@ -57,6 +66,13 @@ func fail(err interface{}) {
 		fmt.Println(err)
 	}
 	os.Exit(-1)
+}
+
+func getHome() string {
+	if u, e := user.Current(); e != nil {
+		return u.HomeDir
+	}
+	return os.Getenv("HOME")
 }
 
 func getCmd(method string) func(c *d.Client, p0, p1 string) error {
