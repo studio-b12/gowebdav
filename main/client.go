@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	d "gowebdav"
+	d "github.com/studio-b12/gowebdav"
 	"io"
 	"os"
 	"strings"
