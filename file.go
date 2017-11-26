@@ -8,16 +8,23 @@ import (
 
 // File is our structure for a given file
 type File struct {
-	path     string
-	name     string
-	size     int64
-	modified time.Time
-	isdir    bool
+	path        string
+	name        string
+	contentType string
+	size        int64
+	modified    time.Time
+	etag        string
+	isdir       bool
 }
 
 // Name returns the name of a file
 func (f File) Name() string {
 	return f.name
+}
+
+// ContentType returns the content type of a file
+func (f File) ContentType() string {
+	return f.contentType
 }
 
 // Size returns the size of a file
@@ -40,6 +47,11 @@ func (f File) ModTime() time.Time {
 	return f.modified
 }
 
+// ETag returns the ETag of a file
+func (f File) ETag() string {
+	return f.etag
+}
+
 // IsDir let us see if a given file is a directory or not
 func (f File) IsDir() bool {
 	return f.isdir
@@ -56,5 +68,5 @@ func (f File) String() string {
 		return fmt.Sprintf("Dir : '%s' - '%s'", f.path, f.name)
 	}
 
-	return fmt.Sprintf("File: '%s' SIZE: %d MODIFIED: %s", f.path, f.size, f.modified.String())
+	return fmt.Sprintf("File: '%s' SIZE: %d MODIFIED: %s ETAG: %s CTYPE: %s", f.path, f.size, f.modified.String(), f.etag, f.contentType)
 }

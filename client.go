@@ -71,11 +71,13 @@ func (c *Client) Connect() error {
 }
 
 type props struct {
-	Status   string   `xml:"DAV: status"`
-	Name     string   `xml:"DAV: prop>displayname,omitempty"`
-	Type     xml.Name `xml:"DAV: prop>resourcetype>collection,omitempty"`
-	Size     string   `xml:"DAV: prop>getcontentlength,omitempty"`
-	Modified string   `xml:"DAV: prop>getlastmodified,omitempty"`
+	Status      string   `xml:"DAV: status"`
+	Name        string   `xml:"DAV: prop>displayname,omitempty"`
+	Type        xml.Name `xml:"DAV: prop>resourcetype>collection,omitempty"`
+	Size        string   `xml:"DAV: prop>getcontentlength,omitempty"`
+	ContentType string   `xml:"DAV: prop>getcontenttype,omitempty"`
+	ETag        string   `xml:"DAV: prop>getetag,omitempty"`
+	Modified    string   `xml:"DAV: prop>getlastmodified,omitempty"`
 }
 
 type response struct {
@@ -118,6 +120,8 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 			}
 			f.path = path + f.name
 			f.modified = parseModified(&p.Modified)
+			f.etag = p.ETag
+			f.contentType = p.ContentType
 
 			if p.Type.Local == "collection" {
 				f.path += "/"
@@ -141,6 +145,8 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 				<d:displayname/>
 				<d:resourcetype/>
 				<d:getcontentlength/>
+				<d:getcontenttype/>
+				<d:getetag/>
 				<d:getlastmodified/>
 			</d:prop>
 		</d:propfind>`,
@@ -168,6 +174,8 @@ func (c *Client) Stat(path string) (os.FileInfo, error) {
 			f = new(File)
 			f.name = p.Name
 			f.path = path
+			f.etag = p.ETag
+			f.contentType = p.ContentType
 
 			if p.Type.Local == "collection" {
 				if !strings.HasSuffix(f.path, "/") {
@@ -193,6 +201,8 @@ func (c *Client) Stat(path string) (os.FileInfo, error) {
 				<d:displayname/>
 				<d:resourcetype/>
 				<d:getcontentlength/>
+				<d:getcontenttype/>
+				<d:getetag/>
 				<d:getlastmodified/>
 			</d:prop>
 		</d:propfind>`,
