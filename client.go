@@ -261,7 +261,12 @@ func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, newPathErrorErr("ReadStream", path, err)
 	}
-	return rs.Body, nil
+	if rs.StatusCode == 200 {
+		return rs.Body, nil
+	} else {
+		rs.Body.Close()
+		return nil, newPathError("ReadStream", path, rs.StatusCode)
+	}
 }
 
 func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
