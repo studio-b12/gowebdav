@@ -3,7 +3,6 @@ package gowebdav
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/xml"
 	"io"
 	"net/http"
@@ -19,21 +18,45 @@ type Client struct {
 	root    string
 	headers http.Header
 	c       *http.Client
+	auth    Authenticator
+}
+
+// Authenticator stub
+type Authenticator interface {
+	Type() string
+	User() string
+	Pass() string
+	Authorize(*Client, string, string)
+}
+
+// NoAuth structure holds our credentials
+type NoAuth struct {
+	user string
+	pw   string
+}
+
+// Type identifies the authenticator
+func (n *NoAuth) Type() string {
+	return "NoAuth"
+}
+
+// User returns the current user
+func (n *NoAuth) User() string {
+	return n.user
+}
+
+// Pass returns the current password
+func (n *NoAuth) Pass() string {
+	return n.pw
+}
+
+// Authorize the current request
+func (n *NoAuth) Authorize(c *Client, method string, path string) {
 }
 
 // NewClient creates a new instance of client
 func NewClient(uri, user, pw string) *Client {
-	c := &Client{uri, make(http.Header), &http.Client{}}
-
-	if len(user) > 0 && len(pw) > 0 {
-		a := user + ":" + pw
-		auth := "Basic " + base64.StdEncoding.EncodeToString([]byte(a))
-		c.headers.Add("Authorization", auth)
-	}
-
-	c.root = FixSlash(c.root)
-
-	return c
+	return &Client{FixSlash(uri), make(http.Header), &http.Client{}, &NoAuth{user, pw}}
 }
 
 // SetHeader lets us set arbitrary headers for a given client
@@ -63,7 +86,18 @@ func (c *Client) Connect() error {
 		return err
 	}
 
-	if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
+	if rs.StatusCode == 401 && c.auth.Type() == "NoAuth" {
+		if strings.Index(rs.Header.Get("Www-Authenticate"), "Digest") > -1 {
+			c.auth = &DigestAuth{c.auth.User(), c.auth.Pass(), digestParts(rs)}
+		} else if strings.Index(rs.Header.Get("Www-Authenticate"), "Basic") > -1 {
+			c.auth = &BasicAuth{c.auth.User(), c.auth.Pass()}
+		} else {
+			return newPathError("Authorize", c.root, rs.StatusCode)
+		}
+		return c.Connect()
+	} else if rs.StatusCode == 401 {
+		return newPathError("Authorize", c.root, rs.StatusCode)
+	} else if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
 		return newPathError("Connect", c.root, rs.StatusCode)
 	}
 

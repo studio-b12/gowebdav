@@ -12,11 +12,14 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 	if err != nil {
 		return nil, err
 	}
+
 	for k, vals := range c.headers {
 		for _, v := range vals {
 			r.Header.Add(k, v)
 		}
 	}
+
+	c.auth.Authorize(c, method, path)
 
 	if intercept != nil {
 		intercept(r)
