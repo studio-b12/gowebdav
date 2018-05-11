@@ -9,6 +9,8 @@ import (
 )
 
 func (c *Client) req(method string, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
+	path = strings.Replace(path, "%", "%25", -1)
+	path = strings.Replace(path, "#", "%23", -1)
 	r, err := http.NewRequest(method, Join(c.root, path), body)
 	if err != nil {
 		return nil, err
