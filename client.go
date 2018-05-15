@@ -200,7 +200,7 @@ func (c *Client) RemoveAll(path string) error {
 	}
 	rs.Body.Close()
 
-	if rs.StatusCode == 200 || rs.StatusCode == 204 || rs.StatusCode == 404  {
+	if rs.StatusCode == 200 || rs.StatusCode == 204 || rs.StatusCode == 404 {
 		return nil
 	} else {
 		return newPathError("Remove", path, rs.StatusCode)
