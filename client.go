@@ -37,6 +37,10 @@ func (c *Client) SetHeader(key, value string) {
 	c.headers.Add(key, value)
 }
 
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.c.Timeout = timeout
+}
+
 func (c *Client) SetTransport(transport http.RoundTripper) {
 	c.c.Transport = transport
 }
