@@ -2,8 +2,8 @@
 
 ## LINKS
 
-* [rfc2518](http://asg.andrew.cmu.edu/rfc/rfc2518.html)
-* [rfc2616](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
+* [rfc2518](http://www.faqs.org/rfcs/rfc2518.html "RFC 2518 - HTTP Extensions for Distributed Authoring -- WEBDAV")
+* [rfc2616](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html "HTTP/1.1 Status Code Definitions")
 
 ## Books
 
