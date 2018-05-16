@@ -9,7 +9,7 @@ ${BIN}: ${SRC}
 	go build -o $@ ./cmd/gowebdav
 
 test:
-	go test ./...
+	go test -v ./...
 
 api:
 	@sed '/^## API$$/,$$d' -i README.md
