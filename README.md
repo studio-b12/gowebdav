@@ -13,7 +13,7 @@ go get -u github.com/studio-b12/gowebdav/cmd/gowebdav
 ## Usage
 
 ```sh
-$ ./gowebdav
+$ gowebdav
 Usage: gowebdav FLAGS ARGS
 Flags:
   -X string

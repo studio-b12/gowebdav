@@ -1,3 +1,4 @@
+// Package gowebdav A golang WebDAV library
 package gowebdav
 
 import (
@@ -35,7 +36,7 @@ func NewClient(uri string, user string, pw string) *Client {
 	return c
 }
 
-// SetHeaders lets us set arbitrary headers for a given client
+// SetHeader lets us set arbitrary headers for a given client
 func (c *Client) SetHeader(key, value string) {
 	c.headers.Add(key, value)
 }
@@ -308,12 +309,13 @@ func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, newPathErrorErr("ReadStream", path, err)
 	}
+
 	if rs.StatusCode == 200 {
 		return rs.Body, nil
-	} else {
-		rs.Body.Close()
-		return nil, newPathError("ReadStream", path, rs.StatusCode)
 	}
+
+	rs.Body.Close()
+	return nil, newPathError("ReadStream", path, rs.StatusCode)
 }
 
 // Write writes data to a given path

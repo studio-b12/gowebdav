@@ -55,7 +55,7 @@ func Join(path0 string, path1 string) string {
 // String pulls a string out of our io.Reader
 func String(r io.Reader) string {
 	buf := new(bytes.Buffer)
-	// TODO - mkae String return an error as well
+	// TODO - make String return an error as well
 	_, _ = buf.ReadFrom(r)
 	return buf.String()
 }
