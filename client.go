@@ -295,11 +295,10 @@ func (c *Client) Read(path string) ([]byte, error) {
 	var stream io.ReadCloser
 	var err error
 
-	defer stream.Close()
-
 	if stream, err = c.ReadStream(path); err != nil {
 		return nil, err
 	}
+	defer stream.Close()
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(stream)
