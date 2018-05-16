@@ -323,18 +323,14 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 		return nil
 
 	case 409:
-		if idx := strings.LastIndex(path, "/"); idx == -1 {
-			// faulty root
-			return newPathError("Write", path, 500)
-		} else {
-			if err := c.MkdirAll(path[0:idx+1], 0755); err == nil {
+		if i := strings.LastIndex(path, "/"); i > -1 {
+			if err := c.MkdirAll(path[0:i+1], 0755); err == nil {
 				s = c.put(path, bytes.NewReader(data))
-				if s == 200 || s == 201 {
+				if s == 200 || s == 201 || s == 204 {
 					return nil
 				}
 			}
 		}
-
 	}
 
 	return newPathError("Write", path, s)
