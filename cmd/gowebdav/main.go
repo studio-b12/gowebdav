@@ -14,7 +14,7 @@ func fail(err interface{}) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Println("Usage: client FLAGS ARGS")
+		fmt.Println("Usage: gowebdav FLAGS ARGS")
 		fmt.Println("Flags:")
 		flag.PrintDefaults()
 		fmt.Println("Method <ARGS>")

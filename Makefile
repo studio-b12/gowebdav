@@ -1,20 +1,17 @@
-SRC     := $(wildcard *.go) main/client.go
-BIN     := bin
-CLIENT  := ${BIN}/client
+BIN := gowebdav
+SRC := $(wildcard *.go) cmd/gowebdav/main.go
 
-all: test client
+all: test cmd
 
-client: ${CLIENT}
+cmd: ${BIN}
 
-${CLIENT}: ${SRC}
-	@echo build $@
-	go build -o $@ -- main/client.go
+${BIN}: ${SRC}
+	go build -o $@ ./cmd/gowebdav
 
 test:
-	go test
+	go test ./...
 
 clean:
-	@echo clean ${BIN}
-	@rm -f ${BIN}/*
+	@rm -f ${BIN}
 
-.PHONY: all client clean
+.PHONY: all cmd clean test

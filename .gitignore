@@ -1,2 +1,4 @@
-src
-bin
+/src
+/bin
+/pkg
+/gowebdav
