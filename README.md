@@ -14,27 +14,35 @@ go get -u github.com/studio-b12/gowebdav/cmd/gowebdav
 ## Usage
 
 ```sh
-$ gowebdav
 Usage: gowebdav FLAGS ARGS
 Flags:
   -X string
-        Method ... (default "GET")
+        Method (default "GET")
   -pw string
-        password
+        Password [ENV.PASSWORD]
   -root string
-        WebDAV Endpoint (default "URL")
+        WebDAV Endpoint [ENV.ROOT]
   -user string
-        user
+        User [ENV.USER]
 Method <ARGS>
  LS | LIST | PROPFIND <PATH>
+ STAT <PATH>
  RM | DELETE | DEL <PATH>
  MKDIR | MKCOL <PATH>
  MKDIRALL | MKCOLALL <PATH>
  MV | MOVE | RENAME <OLD_PATH> <NEW_PATH>
  CP | COPY <OLD_PATH> <NEW_PATH>
- GET | PULL | READ <PATH>
+ GET | PULL | READ <PATH> <FILE>
  PUT | PUSH | WRITE <PATH> <FILE>
- STAT <PATH>
+```
+
+*Example*
+
+```sh
+ROOT="https://webdav.server/" \
+USER="foo" \
+PASSWORD="bar" \
+./gowebdav -X LS /
 ```
 
 ## LINKS
