@@ -49,6 +49,7 @@ Method <ARGS>
 
 * [Overview](#pkg-overview)
 * [Index](#pkg-index)
+* [Examples](#pkg-examples)
 * [Subdirectories](#pkg-subdirectories)
 
 ### <a name="pkg-overview">Overview</a>
@@ -58,6 +59,7 @@ Package gowebdav A golang WebDAV library
 * [func FixSlash(s string) string](#FixSlash)
 * [func FixSlashes(s string) string](#FixSlashes)
 * [func Join(path0 string, path1 string) string](#Join)
+* [func PathEscape(path string) string](#PathEscape)
 * [func String(r io.Reader) string](#String)
 * [type Client](#Client)
   * [func NewClient(uri string, user string, pw string) *Client](#NewClient)
@@ -88,28 +90,37 @@ Package gowebdav A golang WebDAV library
   * [func (f File) String() string](#File.String)
   * [func (f File) Sys() interface{}](#File.Sys)
 
+##### <a name="pkg-examples">Examples</a>
+* [PathEscape](#example_PathEscape)
+
 ##### <a name="pkg-files">Package files</a>
 [client.go](https://github.com/studio-b12/gowebdav/blob/master/client.go) [file.go](https://github.com/studio-b12/gowebdav/blob/master/file.go) [requests.go](https://github.com/studio-b12/gowebdav/blob/master/requests.go) [utils.go](https://github.com/studio-b12/gowebdav/blob/master/utils.go) 
 
-### <a name="FixSlash">func</a> [FixSlash](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=491:521#L35)
+### <a name="FixSlash">func</a> [FixSlash](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=707:737#L45)
 ``` go
 func FixSlash(s string) string
 ```
 FixSlash appends a trailing / to our string
 
-### <a name="FixSlashes">func</a> [FixSlashes](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=643:675#L43)
+### <a name="FixSlashes">func</a> [FixSlashes](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=859:891#L53)
 ``` go
 func FixSlashes(s string) string
 ```
 FixSlashes appends and prepends a / if they are missing
 
-### <a name="Join">func</a> [Join](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=760:804#L51)
+### <a name="Join">func</a> [Join](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=976:1020#L61)
 ``` go
 func Join(path0 string, path1 string) string
 ```
 Join joins two paths
 
-### <a name="String">func</a> [String](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=934:965#L56)
+### <a name="PathEscape">func</a> [PathEscape](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=506:541#L36)
+``` go
+func PathEscape(path string) string
+```
+PathEscape escapes all segemnts of a given path
+
+### <a name="String">func</a> [String](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=1150:1181#L66)
 ``` go
 func String(r io.Reader) string
 ```

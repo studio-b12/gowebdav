@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -29,6 +30,15 @@ func newPathErrorErr(op string, path string, err error) error {
 		Path: path,
 		Err:  err,
 	}
+}
+
+// PathEscape escapes all segemnts of a given path
+func PathEscape(path string) string {
+	s := strings.Split(path, "/")
+	for i, e := range s {
+		s[i] = url.PathEscape(e)
+	}
+	return strings.Join(s, "/")
 }
 
 // FixSlash appends a trailing / to our string
