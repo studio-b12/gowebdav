@@ -22,7 +22,7 @@ type Client struct {
 }
 
 // NewClient creates a new instance of client
-func NewClient(uri string, user string, pw string) *Client {
+func NewClient(uri, user, pw string) *Client {
 	c := &Client{uri, make(http.Header), &http.Client{}}
 
 	if len(user) > 0 && len(pw) > 0 {
