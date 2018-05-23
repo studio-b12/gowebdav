@@ -155,11 +155,7 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			err = &os.PathError{
-				Op:   "ReadDir",
-				Path: path,
-				Err:  err,
-			}
+			err = newPathErrorErr("ReadDir", path, err)
 		}
 	}
 	return files, err
@@ -211,11 +207,7 @@ func (c *Client) Stat(path string) (os.FileInfo, error) {
 
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			err = &os.PathError{
-				Op:   "ReadDir",
-				Path: path,
-				Err:  err,
-			}
+			err = newPathErrorErr("ReadDir", path, err)
 		}
 	}
 	return f, err
@@ -281,12 +273,12 @@ func (c *Client) MkdirAll(path string, _ os.FileMode) error {
 }
 
 // Rename moves a file from A to B
-func (c *Client) Rename(oldpath string, newpath string, overwrite bool) error {
+func (c *Client) Rename(oldpath, newpath string, overwrite bool) error {
 	return c.copymove("MOVE", oldpath, newpath, overwrite)
 }
 
 // Copy copies a file from A to B
-func (c *Client) Copy(oldpath string, newpath string, overwrite bool) error {
+func (c *Client) Copy(oldpath, newpath string, overwrite bool) error {
 	return c.copymove("COPY", oldpath, newpath, overwrite)
 }
 
