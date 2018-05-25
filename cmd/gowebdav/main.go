@@ -36,13 +36,7 @@ func main() {
 		fail("Set WebDAV ROOT")
 	}
 
-	var path0, path1 string
-	switch len(flag.Args()) {
-	case 1:
-		path0 = flag.Args()[0]
-	case 2:
-		path1 = flag.Args()[1]
-	default:
+	if l := len(flag.Args()); l == 0 || l > 2 {
 		fail("Unsupported arguments")
 	}
 
@@ -53,7 +47,7 @@ func main() {
 
 	cmd := getCmd(strings.ToUpper(*m))
 
-	if e := cmd(c, path0, path1); e != nil {
+	if e := cmd(c, flag.Arg(0), flag.Arg(1)); e != nil {
 		fail(e)
 	}
 }
