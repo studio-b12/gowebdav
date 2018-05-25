@@ -15,7 +15,7 @@ func main() {
 	root := flag.String("root", os.Getenv("ROOT"), "WebDAV Endpoint [ENV.ROOT]")
 	usr := flag.String("user", os.Getenv("USER"), "User [ENV.USER]")
 	pw := flag.String("pw", os.Getenv("PASSWORD"), "Password [ENV.PASSWORD]")
-	m := flag.String("X", "", `Method:
+	method := flag.String("X", "", `Method:
 	LS <PATH>
 	STAT <PATH>
 
@@ -45,7 +45,7 @@ func main() {
 		fail(fmt.Sprintf("Failed to connect due to: %s", err.Error()))
 	}
 
-	cmd := getCmd(strings.ToUpper(*m))
+	cmd := getCmd(*method)
 
 	if e := cmd(c, flag.Arg(0), flag.Arg(1)); e != nil {
 		fail(e)
@@ -60,7 +60,7 @@ func fail(err interface{}) {
 }
 
 func getCmd(method string) func(c *d.Client, p0, p1 string) error {
-	switch method {
+	switch strings.ToUpper(method) {
 	case "LS", "LIST", "PROPFIND":
 		return cmdLs
 
