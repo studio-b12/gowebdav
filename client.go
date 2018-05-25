@@ -1,4 +1,3 @@
-// Package gowebdav A golang WebDAV library
 package gowebdav
 
 import (
