@@ -22,7 +22,7 @@ func main() {
 	MKDIR <PATH>
 	MKDIRALL <PATH>
 
-	GET <PATH> <FILE>
+	GET <PATH> [<FILE>]
 	PUT <PATH> <FILE>
 
 	MV <OLD> <NEW>
@@ -123,7 +123,11 @@ func cmdStat(c *d.Client, p0, _ string) (err error) {
 func cmdGet(c *d.Client, p0, p1 string) (err error) {
 	bytes, err := c.Read(p0)
 	if err == nil {
-		if err = writeFile(p1, bytes, 0644); err == nil {
+		if p1 == "" {
+			p1 = filepath.Join(".", p0)
+		}
+		err = writeFile(p1, bytes, 0644)
+		if err == nil {
 			fmt.Println(fmt.Sprintf("Written %d bytes to: %s", len(bytes), p1))
 		}
 	}
