@@ -14,7 +14,21 @@ func main() {
 	root := flag.String("root", os.Getenv("ROOT"), "WebDAV Endpoint [ENV.ROOT]")
 	usr := flag.String("user", os.Getenv("USER"), "User [ENV.USER]")
 	pw := flag.String("pw", os.Getenv("PASSWORD"), "Password [ENV.PASSWORD]")
-	m := flag.String("X", "GET", "Method")
+	m := flag.String("X", "", `Method:
+	LS <PATH>
+	STAT <PATH>
+
+	MKDIR <PATH>
+	MKDIRALL <PATH>
+
+	GET <PATH> <FILE>
+	PUT <PATH> <FILE>
+
+	MV <OLD> <NEW>
+	CP <OLD> <NEW>
+
+	DEL <PATH>
+	`)
 	flag.Parse()
 
 	if *root == "" {
@@ -67,7 +81,7 @@ func getCmd(method string) func(c *d.Client, p0, p1 string) error {
 	case "MKCOL", "MKDIR":
 		return cmdMkdir
 
-	case "MKCOLALL", "MKDIRALL":
+	case "MKCOLALL", "MKDIRALL", "MKDIRP":
 		return cmdMkdirAll
 
 	case "RENAME", "MV", "MOVE":
