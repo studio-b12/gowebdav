@@ -100,7 +100,7 @@ func getCmd(method string) func(c *d.Client, p0, p1 string) error {
 	}
 }
 
-func cmdLs(c *d.Client, p0, p1 string) (err error) {
+func cmdLs(c *d.Client, p0, _ string) (err error) {
 	files, err := c.ReadDir(p0)
 	if err == nil {
 		fmt.Println(fmt.Sprintf("ReadDir: '%s' entries: %d ", p0, len(files)))
@@ -111,7 +111,7 @@ func cmdLs(c *d.Client, p0, p1 string) (err error) {
 	return
 }
 
-func cmdStat(c *d.Client, p0, p1 string) (err error) {
+func cmdStat(c *d.Client, p0, _ string) (err error) {
 	file, err := c.Stat(p0)
 	if err == nil {
 		fmt.Println(file)
@@ -129,21 +129,21 @@ func cmdGet(c *d.Client, p0, p1 string) (err error) {
 	return
 }
 
-func cmdRm(c *d.Client, p0, p1 string) (err error) {
+func cmdRm(c *d.Client, p0, _ string) (err error) {
 	if err = c.Remove(p0); err == nil {
 		fmt.Println("RM: " + p0)
 	}
 	return
 }
 
-func cmdMkdir(c *d.Client, p0, p1 string) (err error) {
+func cmdMkdir(c *d.Client, p0, _ string) (err error) {
 	if err = c.Mkdir(p0, 0755); err == nil {
 		fmt.Println("MkDir: " + p0)
 	}
 	return
 }
 
-func cmdMkdirAll(c *d.Client, p0, p1 string) (err error) {
+func cmdMkdirAll(c *d.Client, p0, _ string) (err error) {
 	if err = c.MkdirAll(p0, 0755); err == nil {
 		fmt.Println("MkDirAll: " + p0)
 	}
