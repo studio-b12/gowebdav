@@ -23,7 +23,7 @@ func main() {
 	MKDIRALL <PATH>
 
 	GET <PATH> [<FILE>]
-	PUT <PATH> <FILE>
+	PUT <PATH> [<FILE>]
 
 	MV <OLD> <NEW>
 	CP <OLD> <NEW>
@@ -164,11 +164,17 @@ func cmdCp(c *d.Client, p0, p1 string) (err error) {
 }
 
 func cmdPut(c *d.Client, p0, p1 string) (err error) {
+	if p1 == "" {
+		p1 = filepath.Join(".", p0)
+	}
 	stream, err := getStream(p1)
-	if err == nil {
-		if err = c.WriteStream(p0, stream, 0644); err == nil {
-			fmt.Println(fmt.Sprintf("Put: '%s' -> %s", p1, p0))
-		}
+	if err != nil {
+		return
+	}
+	defer stream.Close()
+
+	if err = c.WriteStream(p0, stream, 0644); err == nil {
+		fmt.Println("Put: " + p1 + " -> " + p0)
 	}
 	return
 }
