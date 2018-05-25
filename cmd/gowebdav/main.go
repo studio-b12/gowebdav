@@ -130,21 +130,21 @@ func cmdGet(c *d.Client, p0, p1 string) (err error) {
 
 func cmdRm(c *d.Client, p0, _ string) (err error) {
 	if err = c.Remove(p0); err == nil {
-		fmt.Println("RM: " + p0)
+		fmt.Println("Remove: " + p0)
 	}
 	return
 }
 
 func cmdMkdir(c *d.Client, p0, _ string) (err error) {
 	if err = c.Mkdir(p0, 0755); err == nil {
-		fmt.Println("MkDir: " + p0)
+		fmt.Println("Mkdir: " + p0)
 	}
 	return
 }
 
 func cmdMkdirAll(c *d.Client, p0, _ string) (err error) {
 	if err = c.MkdirAll(p0, 0755); err == nil {
-		fmt.Println("MkDirAll: " + p0)
+		fmt.Println("MkdirAll: " + p0)
 	}
 	return
 }
