@@ -20,7 +20,11 @@ api:
 	sed 's/\/src\/target\//https:\/\/github.com\/studio-b12\/gowebdav\/blob\/master\//g' |\
 	sed 's/^#/##/g' >> README.md
 
+check:
+	gofmt -w -s $(SRC)
+	gocyclo -over 15 .
+
 clean:
 	@rm -f ${BIN}
 
-.PHONY: all cmd clean test api
+.PHONY: all cmd clean test api check
