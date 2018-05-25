@@ -7,6 +7,7 @@ import (
 	d "github.com/studio-b12/gowebdav"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -175,11 +176,18 @@ func cmdPut(c *d.Client, p0, p1 string) (err error) {
 }
 
 func writeFile(path string, bytes []byte, mode os.FileMode) error {
+	parent := filepath.Dir(path)
+	if _, e := os.Stat(parent); os.IsNotExist(e) {
+		if e := os.MkdirAll(parent, os.ModePerm); e != nil {
+			return e
+		}
+	}
+
 	f, err := os.Create(path)
-	defer f.Close()
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	_, err = f.Write(bytes)
 	return err
