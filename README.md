@@ -253,55 +253,55 @@ func (c *Client) Connect() error
 ```
 Connect connects to our dav server
 
-#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6960:7028#L314)
+#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6438:6506#L303)
 ``` go
 func (c *Client) Copy(oldpath, newpath string, overwrite bool) error
 ```
 Copy copies a file from A to B
 
-#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6051:6107#L273)
+#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5529:5585#L262)
 ``` go
 func (c *Client) Mkdir(path string, _ os.FileMode) error
 ```
 Mkdir makes a directory
 
-#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6286:6345#L284)
+#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5764:5823#L273)
 ``` go
 func (c *Client) MkdirAll(path string, _ os.FileMode) error
 ```
 MkdirAll like mkdir -p, but for webdav
 
-#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7134:7184#L319)
+#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6612:6662#L308)
 ``` go
 func (c *Client) Read(path string) ([]byte, error)
 ```
 Read reads the contents of a remote file
 
-#### <a name="Client.ReadDir">func</a> (\*Client) [ReadDir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=3126:3186#L131)
+#### <a name="Client.ReadDir">func</a> (\*Client) [ReadDir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=2604:2664#L120)
 ``` go
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error)
 ```
 ReadDir reads the contents of a remote directory
 
-#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7495:7558#L337)
+#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6973:7036#L326)
 ``` go
 func (c *Client) ReadStream(path string) (io.ReadCloser, error)
 ```
 ReadStream reads the stream for a given path
 
-#### <a name="Client.Remove">func</a> (\*Client) [Remove](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5557:5599#L250)
+#### <a name="Client.Remove">func</a> (\*Client) [Remove](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5035:5077#L239)
 ``` go
 func (c *Client) Remove(path string) error
 ```
 Remove removes a remote file
 
-#### <a name="Client.RemoveAll">func</a> (\*Client) [RemoveAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5665:5710#L255)
+#### <a name="Client.RemoveAll">func</a> (\*Client) [RemoveAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5143:5188#L244)
 ``` go
 func (c *Client) RemoveAll(path string) error
 ```
 RemoveAll removes remote files
 
-#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6794:6864#L309)
+#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6272:6342#L298)
 ``` go
 func (c *Client) Rename(oldpath, newpath string, overwrite bool) error
 ```
@@ -325,19 +325,19 @@ func (c *Client) SetTransport(transport http.RoundTripper)
 ```
 SetTransport exposes the ability to define custom transports
 
-#### <a name="Client.Stat">func</a> (\*Client) [Stat](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=4513:4568#L198)
+#### <a name="Client.Stat">func</a> (\*Client) [Stat](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=3991:4046#L187)
 ``` go
 func (c *Client) Stat(path string) (os.FileInfo, error)
 ```
 Stat returns the file stats for a specified path
 
-#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7849:7918#L352)
+#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7327:7396#L341)
 ``` go
 func (c *Client) Write(path string, data []byte, _ os.FileMode) error
 ```
 Write writes data to a given path
 
-#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=8320:8400#L374)
+#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7798:7878#L363)
 ``` go
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error
 ```

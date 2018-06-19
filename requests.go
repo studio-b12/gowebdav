@@ -30,7 +30,7 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 		intercept(r)
 	}
 
-        rs, err := c.c.Do(r)
+	rs, err := c.c.Do(r)
 
 	if rs.StatusCode == 401 && c.auth.Type() == "NoAuth" {
 		if strings.Index(rs.Header.Get("Www-Authenticate"), "Digest") > -1 {
