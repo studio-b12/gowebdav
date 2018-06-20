@@ -85,7 +85,7 @@ func (c *Client) Connect() error {
 		return err
 	}
 
-	if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
+	if rs.StatusCode != 200 {
 		return newPathError("Connect", c.root, rs.StatusCode)
 	}
 
