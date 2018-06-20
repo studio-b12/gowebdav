@@ -44,12 +44,15 @@ func (d *DigestAuth) Authorize(c *Client, method string, path string) {
 func digestParts(resp *http.Response) map[string]string {
 	result := map[string]string{}
 	if len(resp.Header["Www-Authenticate"]) > 0 {
-		wantedHeaders := []string{"nonce", "realm", "qop", "opaque"}
+		wantedHeaders := []string{"nonce", "realm", "qop", "opaque", "algorithm", "entityBody"}
 		responseHeaders := strings.Split(resp.Header["Www-Authenticate"][0], ",")
 		for _, r := range responseHeaders {
 			for _, w := range wantedHeaders {
 				if strings.Contains(r, w) {
-					result[w] = strings.Split(r, `"`)[1]
+					result[w] = strings.Trim(
+						strings.SplitN(r, `=`, 2)[1],
+						`"`,
+					)
 				}
 			}
 		}
@@ -72,13 +75,68 @@ func getCnonce() string {
 func getDigestAuthorization(digestParts map[string]string) string {
 	d := digestParts
 	// These are the correct ha1 and ha2 for qop=auth. We should probably check for other types of qop.
-	ha1 := getMD5(d["username"] + ":" + d["realm"] + ":" + d["password"])
-	ha2 := getMD5(d["method"] + ":" + d["uri"])
-	nonceCount := 00000001
-	cnonce := getCnonce()
-	response := getMD5(fmt.Sprintf("%s:%s:%v:%s:%s:%s", ha1, d["nonce"], nonceCount, cnonce, d["qop"], ha2))
-	authorization := fmt.Sprintf(`Digest username="%s", realm="%s", nonce="%s", uri="%s", qop=%s, nc=%v, cnonce="%s", response="%s"`,
-		d["username"], d["realm"], d["nonce"], d["uri"], d["qop"], nonceCount, cnonce, response)
+
+	var (
+		ha1 string
+		ha2 string
+		nonceCount = 00000001
+		cnonce = getCnonce()
+		response string
+	)
+
+	// 'ha1' value depends on value of "algorithm" field
+	switch d["algorithm"] {
+	case "MD5", "":
+		ha1 = getMD5(d["username"] + ":" + d["realm"] + ":" + d["password"])
+	case "MD5-sess":
+		ha1 = getMD5(
+			fmt.Sprintf("%s:%v:%s",
+				getMD5(d["username"] + ":" + d["realm"] + ":" + d["password"]),
+				nonceCount,
+				cnonce,
+			),
+		)
+	}
+
+	// 'ha2' value depends on value of "qop" field
+	switch d["qop"] {
+	case "auth", "":
+		ha2 = getMD5(d["method"] + ":" + d["uri"])
+	case "auth-int":
+		if d["entityBody"] != "" {
+			ha2 = getMD5(d["method"] + ":" + d["uri"] + ":" + getMD5(d["entityBody"]))
+		}
+	}
+
+	// 'response' value depends on value of "qop" field
+	switch d["qop"] {
+	case "":
+		response = getMD5(
+			fmt.Sprintf("%s:%s:%s",
+				ha1,
+				d["nonce"],
+				ha2,
+			),
+		)
+	case "auth", "auth-int":
+		response = getMD5(
+			fmt.Sprintf("%s:%s:%v:%s:%s:%s",
+				ha1,
+				d["nonce"],
+				nonceCount,
+				cnonce,
+				d["qop"],
+				ha2,
+			),
+		)
+	}
+
+	authorization := fmt.Sprintf(`Digest username="%s", realm="%s", nonce="%s", uri="%s", nc=%v, cnonce="%s", response="%s"`,
+		d["username"], d["realm"], d["nonce"], d["uri"], nonceCount, cnonce, response)
+
+	if d["qop"] != "" {
+		authorization += fmt.Sprintf(`, qop=%s`, d["qop"])
+	}
 
 	if d["opaque"] != "" {
 		authorization += fmt.Sprintf(`, opaque="%s"`, d["opaque"])
