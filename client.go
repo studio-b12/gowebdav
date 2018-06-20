@@ -346,12 +346,10 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 		return nil
 
 	case 409:
-		if i := strings.LastIndex(path, "/"); i > -1 {
-			if err := c.MkdirAll(path[0:i+1], 0755); err == nil {
-				s = c.put(path, bytes.NewReader(data))
-				if s == 200 || s == 201 || s == 204 {
-					return nil
-				}
+		if err := c.createParentCollection(path); err == nil {
+			s = c.put(path, bytes.NewReader(data))
+			if s == 200 || s == 201 || s == 204 {
+				return nil
 			}
 		}
 	}
@@ -361,7 +359,7 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 
 // WriteStream writes a stream
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error {
-	// TODO check if parent collection exists
+	c.createParentCollection(path)
 	s := c.put(path, stream)
 	switch s {
 	case 200, 201, 204:
