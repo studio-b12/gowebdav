@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"errors"
 )
 
 func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
@@ -121,7 +122,8 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 		log(fmt.Sprintf(" TODO handle %s - %s multistatus result %s", method, oldpath, String(data)))
 
 	case 409:
-		// TODO create dst path
+		return errors.New("can not copy/move item [" + oldpath + "] to [" +
+			newpath + "]: destination path does not exist or wrong XML content of the request")
 	}
 
 	return newPathError(method, oldpath, s)
