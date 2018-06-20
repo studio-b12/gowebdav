@@ -77,7 +77,12 @@ func getDigestAuthorization(digestParts map[string]string) string {
 	nonceCount := 00000001
 	cnonce := getCnonce()
 	response := getMD5(fmt.Sprintf("%s:%s:%v:%s:%s:%s", ha1, d["nonce"], nonceCount, cnonce, d["qop"], ha2))
-	authorization := fmt.Sprintf(`Digest username="%s", realm="%s", nonce="%s", uri="%s", cnonce="%s", nc="%v", qop="%s", response="%s", opaque="%s"`,
-		d["username"], d["realm"], d["nonce"], d["uri"], cnonce, nonceCount, d["qop"], response, d["opaque"])
+	authorization := fmt.Sprintf(`Digest username="%s", realm="%s", nonce="%s", uri="%s", qop=%s, nc=%v, cnonce="%s", response="%s"`,
+		d["username"], d["realm"], d["nonce"], d["uri"], d["qop"], nonceCount, cnonce, response)
+
+	if d["opaque"] != "" {
+		authorization += fmt.Sprintf(`, opaque="%s"`, d["opaque"])
+	}
+
 	return authorization
 }

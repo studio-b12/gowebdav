@@ -85,18 +85,7 @@ func (c *Client) Connect() error {
 		return err
 	}
 
-	if rs.StatusCode == 401 && c.auth.Type() == "NoAuth" {
-		if strings.Index(rs.Header.Get("Www-Authenticate"), "Digest") > -1 {
-			c.auth = &DigestAuth{c.auth.User(), c.auth.Pass(), digestParts(rs)}
-		} else if strings.Index(rs.Header.Get("Www-Authenticate"), "Basic") > -1 {
-			c.auth = &BasicAuth{c.auth.User(), c.auth.Pass()}
-		} else {
-			return newPathError("Authorize", c.root, rs.StatusCode)
-		}
-		return c.Connect()
-	} else if rs.StatusCode == 401 {
-		return newPathError("Authorize", c.root, rs.StatusCode)
-	} else if rs.StatusCode != 200 || (rs.Header.Get("Dav") == "" && rs.Header.Get("DAV") == "") {
+	if rs.StatusCode != 200 {
 		return newPathError("Connect", c.root, rs.StatusCode)
 	}
 
