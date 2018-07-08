@@ -10,10 +10,16 @@ import (
 
 func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
 	// Tee the body, because if authorization fails we will need to read from it again.
+	var r *http.Request
 	var ba bytes.Buffer
 	bb := io.TeeReader(body, &ba)
 
-	r, err := http.NewRequest(method, PathEscape(Join(c.root, path)), &ba)
+	if body == nil {
+		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), nil)
+	} else {
+		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), bb)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +46,13 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 		} else {
 			return rs, newPathError("Authorize", c.root, rs.StatusCode)
 		}
-		return c.req(method, path, bb, intercept)
+
+		if body == nil {
+			return c.req(method, path, nil, intercept)
+		} else {
+			return c.req(method, path, &ba, intercept)
+		}
+
 	} else if rs.StatusCode == 401 {
 		return rs, newPathError("Authorize", c.root, rs.StatusCode)
 	}
