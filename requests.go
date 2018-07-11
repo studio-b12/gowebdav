@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"path"
+	"github.com/pkg/errors"
 )
 
 func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
@@ -147,4 +149,16 @@ func (c *Client) put(path string, stream io.Reader) int {
 	}
 
 	return rs.StatusCode
+}
+
+func (c *Client) createParentCollection(itemPath string) (err error) {
+
+	parentPath := path.Dir(itemPath)
+
+	err = c.MkdirAll(parentPath, 0755)
+	if err != nil {
+		return errors.Wrap(err, "can't create parent collection")
+	}
+
+	return nil
 }
