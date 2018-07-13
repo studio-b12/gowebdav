@@ -3,5 +3,8 @@ language: go
 go:
   - "1.x"
 
-script:
+install:
   - go get ./...
+
+script:
+  - go test -v --short ./...
