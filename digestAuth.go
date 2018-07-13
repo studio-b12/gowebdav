@@ -77,11 +77,11 @@ func getDigestAuthorization(digestParts map[string]string) string {
 	// These are the correct ha1 and ha2 for qop=auth. We should probably check for other types of qop.
 
 	var (
-		ha1 string
-		ha2 string
+		ha1        string
+		ha2        string
 		nonceCount = 00000001
-		cnonce = getCnonce()
-		response string
+		cnonce     = getCnonce()
+		response   string
 	)
 
 	// 'ha1' value depends on value of "algorithm" field
@@ -91,7 +91,7 @@ func getDigestAuthorization(digestParts map[string]string) string {
 	case "MD5-sess":
 		ha1 = getMD5(
 			fmt.Sprintf("%s:%v:%s",
-				getMD5(d["username"] + ":" + d["realm"] + ":" + d["password"]),
+				getMD5(d["username"]+":"+d["realm"]+":"+d["password"]),
 				nonceCount,
 				cnonce,
 			),
