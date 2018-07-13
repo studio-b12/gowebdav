@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"path"
 )
 
 func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
@@ -133,7 +134,12 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 		log(fmt.Sprintf(" TODO handle %s - %s multistatus result %s", method, oldpath, String(data)))
 
 	case 409:
-		// TODO create dst path
+		err := c.createParentCollection(newpath)
+		if err != nil {
+			return err
+		}
+
+		return c.copymove(method, oldpath, newpath, overwrite)
 	}
 
 	return newPathError(method, oldpath, s)
@@ -147,4 +153,9 @@ func (c *Client) put(path string, stream io.Reader) int {
 	}
 
 	return rs.StatusCode
+}
+
+func (c *Client) createParentCollection(itemPath string) (err error) {
+	parentPath := path.Dir(itemPath)
+	return c.MkdirAll(parentPath, 0755)
 }

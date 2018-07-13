@@ -2,3 +2,9 @@ language: go
 
 go:
   - "1.x"
+
+install:
+  - go get ./...
+
+script:
+  - go test -v --short ./...
