@@ -346,13 +346,14 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 		return nil
 
 	case 409:
-		if err := c.createParentCollection(path); err == nil {
-			s = c.put(path, bytes.NewReader(data))
-			if s == 200 || s == 201 || s == 204 {
-				return nil
-			}
-		} else {
+		err := c.createParentCollection(path)
+		if err != nil {
 			return err
+		}
+
+		s = c.put(path, bytes.NewReader(data))
+		if s == 200 || s == 201 || s == 204 {
+			return nil
 		}
 	}
 
