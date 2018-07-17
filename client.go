@@ -346,11 +346,14 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 		return nil
 
 	case 409:
-		if err := c.createParentCollection(path); err == nil {
-			s = c.put(path, bytes.NewReader(data))
-			if s == 200 || s == 201 || s == 204 {
-				return nil
-			}
+		err := c.createParentCollection(path)
+		if err != nil {
+			return err
+		}
+
+		s = c.put(path, bytes.NewReader(data))
+		if s == 200 || s == 201 || s == 204 {
+			return nil
 		}
 	}
 
@@ -359,8 +362,14 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 
 // WriteStream writes a stream
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error {
-	c.createParentCollection(path)
+
+	err := c.createParentCollection(path)
+	if err != nil {
+		return err
+	}
+
 	s := c.put(path, stream)
+
 	switch s {
 	case 200, 201, 204:
 		return nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"strings"
 	"errors"
 	"path/filepath"
@@ -135,8 +136,12 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 		log(fmt.Sprintf(" TODO handle %s - %s multistatus result %s", method, oldpath, String(data)))
 
 	case 409:
-		return errors.New("can not copy/move item [" + oldpath + "] to [" +
-			newpath + "]: destination path does not exist or wrong XML content of the request")
+		err := c.createParentCollection(newpath)
+		if err != nil {
+			return err
+		}
+
+		return c.copymove(method, oldpath, newpath, overwrite)
 	}
 
 	return newPathError(method, oldpath, s)
@@ -152,8 +157,7 @@ func (c *Client) put(path string, stream io.Reader) int {
 	return rs.StatusCode
 }
 
-
 func (c *Client) createParentCollection(itemPath string) (err error) {
-	parentPath := filepath.Dir(itemPath)
+	parentPath := path.Dir(itemPath)
 	return c.MkdirAll(parentPath, 0755)
 }

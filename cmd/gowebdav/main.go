@@ -50,9 +50,6 @@ func main() {
 	}
 
 	c := d.NewClient(*root, *usr, *pw)
-	if err := c.Connect(); err != nil {
-		fail(fmt.Sprintf("Failed to connect due to: %s", err.Error()))
-	}
 
 	cmd := getCmd(*method)
 
