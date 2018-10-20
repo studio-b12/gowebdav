@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"path"
 	"strings"
-	"errors"
-	"path/filepath"
 )
 
 func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
