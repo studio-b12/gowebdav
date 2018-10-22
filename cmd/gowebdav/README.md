@@ -76,10 +76,7 @@ gowebdav -X DEL temp/file.txt
 
 # Wrapper script
 
-Create a wrapper script for example `$EDITOR ./dav && chmod a+x ./dav` for your
-server and use [pass](https://www.passwordstore.org/ "the standard unix password manager")
-or similar tools to retrieve the password.
-
+You can create wrapper script for your server (via `$EDITOR ./dav && chmod a+x ./dav`) and add following content to it:
 ```sh
 #!/bin/sh
 
@@ -89,6 +86,8 @@ PASSWORD="$(pass dav/foo@my.dav.server)" \
 gowebdav $@
 ```
 
+It allows you to use [pass](https://www.passwordstore.org/ "the standard unix password manager") or similar tools to retrieve the password.
+
 ## Examples
 
 Using the `dav` wrapper:
@@ -97,12 +96,8 @@ Using the `dav` wrapper:
 $ ./dav -X LS /
 
 $ echo hi dav! > hello && ./dav -X PUT /hello
-
 $ ./dav -X STAT /hello
-
 $ ./dav -X PUT /hello_dav hello
-
 $ ./dav -X GET /hello_dav
-
 $ ./dav -X GET /hello_dav hello.txt
 ```
