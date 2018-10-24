@@ -133,9 +133,12 @@ c.Remove(webdavFilePath)
 
 More details about WebDAV server you can read from following resources:
 
-* [RFC 2518 - HTTP Extensions for Distributed Authoring -- WEBDAV](http://www.faqs.org/rfcs/rfc2518.html "RFC 2518 - HTTP Extensions for Distributed Authoring -- WEBDAV")
+* [RFC 4918 - HTTP Extensions for Web Distributed Authoring and Versioning (WebDAV)](https://tools.ietf.org/html/rfc4918)
+* [RFC 5689 - Extended MKCOL for Web Distributed Authoring and Versioning (WebDAV)](https://tools.ietf.org/html/rfc5689)
 * [RFC 2616 - HTTP/1.1 Status Code Definitions](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html "HTTP/1.1 Status Code Definitions")
 * [WebDav: Next Generation Collaborative Web Authoring By Lisa Dusseaul](https://books.google.de/books?isbn=0130652083 "WebDav: Next Generation Collaborative Web Authoring By Lisa Dusseault")
+
+**NOTICE**: RFC 2518 is obsoleted by RFC 4918 in June 2007
 
 ## Contributing
 All contributing are welcome. If you have any suggestions or find some bug - please create an Issue to let us make this project better. We appreciate your help!
