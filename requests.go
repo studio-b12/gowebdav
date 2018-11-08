@@ -66,10 +66,10 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 
 func (c *Client) mkcol(path string) int {
 	rs, err := c.req("MKCOL", path, nil, nil)
-	defer rs.Body.Close()
 	if err != nil {
 		return 400
 	}
+	defer rs.Body.Close()
 
 	if rs.StatusCode == 201 || rs.StatusCode == 405 {
 		return 201
@@ -97,10 +97,10 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 		// TODO add support for 'gzip,deflate;q=0.8,q=0.7'
 		rq.Header.Add("Accept-Encoding", "")
 	})
-	defer rs.Body.Close()
 	if err != nil {
 		return err
 	}
+	defer rs.Body.Close()
 
 	if rs.StatusCode != 207 {
 		return fmt.Errorf("%s - %s %s", rs.Status, "PROPFIND", path)
@@ -150,10 +150,10 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 
 func (c *Client) put(path string, stream io.Reader) int {
 	rs, err := c.req("PUT", path, stream, nil)
-	defer rs.Body.Close()
 	if err != nil {
 		return 400
 	}
+	defer rs.Body.Close()
 
 	return rs.StatusCode
 }
