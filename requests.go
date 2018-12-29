@@ -91,7 +91,7 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 		} else {
 			rq.Header.Add("Depth", "1")
 		}
-		rq.Header.Add("Content-Type", "text/xml;charset=UTF-8")
+		rq.Header.Add("Content-Type", "application/xml;charset=UTF-8")
 		rq.Header.Add("Accept", "application/xml,text/xml")
 		rq.Header.Add("Accept-Charset", "utf-8")
 		// TODO add support for 'gzip,deflate;q=0.8,q=0.7'
