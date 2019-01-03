@@ -211,32 +211,28 @@ func writeFile(path string, bytes []byte, mode os.FileMode) error {
 }
 
 func getStream(pathOrString string) (io.ReadCloser, error) {
+
 	fi, err := os.Stat(pathOrString)
-	if err == nil {
-		if fi.IsDir() {
-			return nil, &os.PathError{
-				Op:   "Open",
-				Path: pathOrString,
-				Err:  errors.New("Path: '" + pathOrString + "' is a directory"),
-			}
-		}
-		f, err := os.Open(pathOrString)
-		if err == nil {
-			return f, nil
-		}
+	if err != nil {
+		return nil, err
+	}
+
+	if fi.IsDir() {
 		return nil, &os.PathError{
 			Op:   "Open",
 			Path: pathOrString,
-			Err:  err,
+			Err:  errors.New("Path: '" + pathOrString + "' is a directory"),
 		}
 	}
-	return nopCloser{strings.NewReader(pathOrString)}, nil
-}
 
-type nopCloser struct {
-	io.Reader
-}
+	f, err := os.Open(pathOrString)
+	if err == nil {
+		return f, nil
+	}
 
-func (nopCloser) Close() error {
-	return nil
+	return nil, &os.PathError{
+		Op:   "Open",
+		Path: pathOrString,
+		Err:  err,
+	}
 }
