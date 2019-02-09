@@ -160,5 +160,9 @@ func (c *Client) put(path string, stream io.Reader) int {
 
 func (c *Client) createParentCollection(itemPath string) (err error) {
 	parentPath := path.Dir(itemPath)
+	if parentPath == "." {
+		return nil
+	}
+
 	return c.MkdirAll(parentPath, 0755)
 }
