@@ -160,7 +160,7 @@ func (c *Client) put(path string, stream io.Reader) int {
 
 func (c *Client) createParentCollection(itemPath string) (err error) {
 	parentPath := path.Dir(itemPath)
-	if parentPath == "." {
+	if parentPath == "." || parentPath == "/" {
 		return nil
 	}
 
