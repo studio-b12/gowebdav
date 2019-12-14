@@ -15,8 +15,8 @@ import (
 
 func main() {
 	root := flag.String("root", os.Getenv("ROOT"), "WebDAV Endpoint [ENV.ROOT]")
-	usr := flag.String("user", os.Getenv("USER"), "User [ENV.USER]")
-	pw := flag.String("pw", os.Getenv("PASSWORD"), "Password [ENV.PASSWORD]")
+	user := flag.String("user", os.Getenv("USER"), "User [ENV.USER]")
+	password := flag.String("pw", os.Getenv("PASSWORD"), "Password [ENV.PASSWORD]")
 	netrc := flag.String("netrc-file", filepath.Join(getHome(), ".netrc"), "read login from netrc file")
 	method := flag.String("X", "", `Method:
 	LS <PATH>
@@ -39,18 +39,18 @@ func main() {
 		fail("Set WebDAV ROOT")
 	}
 
-	if l := len(flag.Args()); l == 0 || l > 2 {
+	if argsLength := len(flag.Args()); argsLength == 0 || argsLength > 2 {
 		fail("Unsupported arguments")
 	}
 
-	if *pw == "" {
+	if *password == "" {
 		if u, p := d.ReadConfig(*root, *netrc); u != "" && p != "" {
-			usr = &u
-			pw = &p
+			user = &u
+			password = &p
 		}
 	}
 
-	c := d.NewClient(*root, *usr, *pw)
+	c := d.NewClient(*root, *user, *password)
 
 	cmd := getCmd(*method)
 
