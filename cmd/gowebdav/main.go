@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -66,10 +67,21 @@ func fail(err interface{}) {
 }
 
 func getHome() string {
-	if u, e := user.Current(); e != nil {
+	u, e := user.Current()
+	if e != nil {
+		return os.Getenv("HOME")
+	}
+
+	if u != nil {
 		return u.HomeDir
 	}
-	return os.Getenv("HOME")
+
+	switch runtime.GOOS {
+	case "windows":
+		return ""
+	default:
+		return "~/"
+	}
 }
 
 func getCmd(method string) func(c *d.Client, p0, p1 string) error {
