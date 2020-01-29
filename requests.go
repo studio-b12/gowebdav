@@ -136,20 +136,16 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 	switch s {
 	case 201, 204:
 		return nil
-
 	case 207:
 		// TODO handle multistat errors, worst case ...
-		log(fmt.Sprintf(" TODO handle %s - %s multistatus result %s", method, oldpath, String(data)))
-
+		Logger.Warnf(" TODO handle %s - %s multistatus result %s", method, oldpath, String(data))
 	case 409:
 		err := c.createParentCollection(newpath)
 		if err != nil {
 			return err
 		}
-
 		return c.copymove(method, oldpath, newpath, overwrite)
 	}
-
 	return newPathError(method, oldpath, s)
 }
 

@@ -341,10 +341,8 @@ func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 	s := c.put(path, bytes.NewReader(data))
 	switch s {
-
 	case 200, 201, 204:
 		return nil
-
 	case 409:
 		err := c.createParentCollection(path)
 		if err != nil {

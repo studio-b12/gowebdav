@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"github.com/88250/gulu"
 	"io"
 	"net/url"
 	"os"
@@ -12,8 +13,10 @@ import (
 	"time"
 )
 
-func log(msg interface{}) {
-	fmt.Println(msg)
+var Logger *gulu.Logger
+
+func init() {
+	Logger = gulu.Log.NewLogger(os.Stdout)
 }
 
 func newPathError(op string, path string, statusCode int) error {
