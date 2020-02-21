@@ -17,6 +17,11 @@ type File struct {
 	isdir       bool
 }
 
+// Path returns the full path of a file
+func (f File) Path() string {
+	return f.path
+}
+
 // Name returns the name of a file
 func (f File) Name() string {
 	return f.name
