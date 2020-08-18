@@ -33,12 +33,12 @@ func (d *DigestAuth) Pass() string {
 }
 
 // Authorize the current request
-func (d *DigestAuth) Authorize(c *Client, method string, path string) {
+func (d *DigestAuth) Authorize(req *http.Request, method string, path string) {
 	d.digestParts["uri"] = path
 	d.digestParts["method"] = method
 	d.digestParts["username"] = d.user
 	d.digestParts["password"] = d.pw
-	c.headers.Set("Authorization", getDigestAuthorization(d.digestParts))
+	req.Header.Set("Authorization", getDigestAuthorization(d.digestParts))
 }
 
 func digestParts(resp *http.Response) map[string]string {

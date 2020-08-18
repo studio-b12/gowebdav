@@ -25,13 +25,19 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 		return nil, err
 	}
 
-	c.auth.Authorize(c, method, path)
-
 	for k, vals := range c.headers {
 		for _, v := range vals {
 			r.Header.Add(k, v)
 		}
 	}
+
+	// make sure we read 'c.auth' only once since it will be substituted below
+	// and that is unsafe to do when multiple goroutines are running at the same time.
+	c.authMutex.Lock()
+	auth := c.auth
+	c.authMutex.Unlock()
+
+	auth.Authorize(r, method, path)
 
 	if intercept != nil {
 		intercept(r)
@@ -42,16 +48,17 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 		return nil, err
 	}
 
-	if rs.StatusCode == 401 && c.auth.Type() == "NoAuth" {
-
+	if rs.StatusCode == 401 && auth.Type() == "NoAuth" {
 		wwwAuthenticateHeader := strings.ToLower(rs.Header.Get("Www-Authenticate"))
 
 		if strings.Index(wwwAuthenticateHeader, "digest") > -1 {
-			c.auth = &DigestAuth{c.auth.User(), c.auth.Pass(), digestParts(rs)}
-
+			c.authMutex.Lock()
+			c.auth = &DigestAuth{auth.User(), auth.Pass(), digestParts(rs)}
+			c.authMutex.Unlock()
 		} else if strings.Index(wwwAuthenticateHeader, "basic") > -1 {
-			c.auth = &BasicAuth{c.auth.User(), c.auth.Pass()}
-
+			c.authMutex.Lock()
+			c.auth = &BasicAuth{auth.User(), auth.Pass()}
+			c.authMutex.Unlock()
 		} else {
 			return rs, newPathError("Authorize", c.root, rs.StatusCode)
 		}
