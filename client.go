@@ -9,6 +9,7 @@ import (
 	"os"
 	pathpkg "path"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,7 +18,9 @@ type Client struct {
 	root    string
 	headers http.Header
 	c       *http.Client
-	auth    Authenticator
+
+	authMutex sync.Mutex
+	auth      Authenticator
 }
 
 // Authenticator stub
@@ -25,7 +28,7 @@ type Authenticator interface {
 	Type() string
 	User() string
 	Pass() string
-	Authorize(*Client, string, string)
+	Authorize(*http.Request, string, string)
 }
 
 // NoAuth structure holds our credentials
@@ -50,12 +53,12 @@ func (n *NoAuth) Pass() string {
 }
 
 // Authorize the current request
-func (n *NoAuth) Authorize(c *Client, method string, path string) {
+func (n *NoAuth) Authorize(req *http.Request, method string, path string) {
 }
 
 // NewClient creates a new instance of client
 func NewClient(uri, user, pw string) *Client {
-	return &Client{FixSlash(uri), make(http.Header), &http.Client{}, &NoAuth{user, pw}}
+	return &Client{FixSlash(uri), make(http.Header), &http.Client{}, sync.Mutex{}, &NoAuth{user, pw}}
 }
 
 // SetHeader lets us set arbitrary headers for a given client

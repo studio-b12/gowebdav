@@ -2,6 +2,7 @@ package gowebdav
 
 import (
 	"encoding/base64"
+	"net/http"
 )
 
 // BasicAuth structure holds our credentials
@@ -26,8 +27,8 @@ func (b *BasicAuth) Pass() string {
 }
 
 // Authorize the current request
-func (b *BasicAuth) Authorize(c *Client, method string, path string) {
+func (b *BasicAuth) Authorize(req *http.Request, method string, path string) {
 	a := b.user + ":" + b.pw
 	auth := "Basic " + base64.StdEncoding.EncodeToString([]byte(a))
-	c.headers.Set("Authorization", auth)
+	req.Header.Set("Authorization", auth)
 }
