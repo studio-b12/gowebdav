@@ -167,7 +167,7 @@ included.
 * [func String(r io.Reader) string](#String)
 * [type Authenticator](#Authenticator)
 * [type BasicAuth](#BasicAuth)
-  * [func (b *BasicAuth) Authorize(c *Client, method string, path string)](#BasicAuth.Authorize)
+  * [func (b *BasicAuth) Authorize(req *http.Request, method string, path string)](#BasicAuth.Authorize)
   * [func (b *BasicAuth) Pass() string](#BasicAuth.Pass)
   * [func (b *BasicAuth) Type() string](#BasicAuth.Type)
   * [func (b *BasicAuth) User() string](#BasicAuth.User)
@@ -190,7 +190,7 @@ included.
   * [func (c *Client) Write(path string, data []byte, _ os.FileMode) error](#Client.Write)
   * [func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error](#Client.WriteStream)
 * [type DigestAuth](#DigestAuth)
-  * [func (d *DigestAuth) Authorize(c *Client, method string, path string)](#DigestAuth.Authorize)
+  * [func (d *DigestAuth) Authorize(req *http.Request, method string, path string)](#DigestAuth.Authorize)
   * [func (d *DigestAuth) Pass() string](#DigestAuth.Pass)
   * [func (d *DigestAuth) Type() string](#DigestAuth.Type)
   * [func (d *DigestAuth) User() string](#DigestAuth.User)
@@ -206,7 +206,7 @@ included.
   * [func (f File) String() string](#File.String)
   * [func (f File) Sys() interface{}](#File.Sys)
 * [type NoAuth](#NoAuth)
-  * [func (n *NoAuth) Authorize(c *Client, method string, path string)](#NoAuth.Authorize)
+  * [func (n *NoAuth) Authorize(req *http.Request, method string, path string)](#NoAuth.Authorize)
   * [func (n *NoAuth) Pass() string](#NoAuth.Pass)
   * [func (n *NoAuth) Type() string](#NoAuth.Type)
   * [func (n *NoAuth) User() string](#NoAuth.User)
@@ -254,18 +254,18 @@ func String(r io.Reader) string
 ```
 String pulls a string out of our io.Reader
 
-### <a name="Authenticator">type</a> [Authenticator](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=285:398#L24)
+### <a name="Authenticator">type</a> [Authenticator](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=318:437#L27)
 ``` go
 type Authenticator interface {
     Type() string
     User() string
     Pass() string
-    Authorize(*Client, string, string)
+    Authorize(*http.Request, string, string)
 }
 ```
 Authenticator stub
 
-### <a name="BasicAuth">type</a> [BasicAuth](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=94:145#L8)
+### <a name="BasicAuth">type</a> [BasicAuth](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=106:157#L9)
 ``` go
 type BasicAuth struct {
     // contains filtered or unexported fields
@@ -273,31 +273,31 @@ type BasicAuth struct {
 ```
 BasicAuth structure holds our credentials
 
-#### <a name="BasicAuth.Authorize">func</a> (\*BasicAuth) [Authorize](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=461:529#L29)
+#### <a name="BasicAuth.Authorize">func</a> (\*BasicAuth) [Authorize](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=473:549#L30)
 ``` go
-func (b *BasicAuth) Authorize(c *Client, method string, path string)
+func (b *BasicAuth) Authorize(req *http.Request, method string, path string)
 ```
 Authorize the current request
 
-#### <a name="BasicAuth.Pass">func</a> (\*BasicAuth) [Pass](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=376:409#L24)
+#### <a name="BasicAuth.Pass">func</a> (\*BasicAuth) [Pass](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=388:421#L25)
 ``` go
 func (b *BasicAuth) Pass() string
 ```
 Pass holds the BasicAuth password
 
-#### <a name="BasicAuth.Type">func</a> (\*BasicAuth) [Type](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=189:222#L14)
+#### <a name="BasicAuth.Type">func</a> (\*BasicAuth) [Type](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=201:234#L15)
 ``` go
 func (b *BasicAuth) Type() string
 ```
 Type identifies the BasicAuthenticator
 
-#### <a name="BasicAuth.User">func</a> (\*BasicAuth) [User](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=285:318#L19)
+#### <a name="BasicAuth.User">func</a> (\*BasicAuth) [User](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go?s=297:330#L20)
 ``` go
 func (b *BasicAuth) User() string
 ```
 User holds the BasicAuth username
 
-### <a name="Client">type</a> [Client](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=157:261#L16)
+### <a name="Client">type</a> [Client](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=165:294#L17)
 ``` go
 type Client struct {
     // contains filtered or unexported fields
@@ -305,103 +305,103 @@ type Client struct {
 ```
 Client defines our structure
 
-#### <a name="NewClient">func</a> [NewClient](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=902:946#L57)
+#### <a name="NewClient">func</a> [NewClient](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=949:993#L60)
 ``` go
 func NewClient(uri, user, pw string) *Client
 ```
 NewClient creates a new instance of client
 
-#### <a name="Client.Connect">func</a> (\*Client) [Connect](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1516:1548#L77)
+#### <a name="Client.Connect">func</a> (\*Client) [Connect](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1577:1609#L80)
 ``` go
 func (c *Client) Connect() error
 ```
 Connect connects to our dav server
 
-#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6376:6444#L303)
+#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6437:6505#L306)
 ``` go
 func (c *Client) Copy(oldpath, newpath string, overwrite bool) error
 ```
 Copy copies a file from A to B
 
-#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5467:5523#L262)
+#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5528:5584#L265)
 ``` go
 func (c *Client) Mkdir(path string, _ os.FileMode) error
 ```
 Mkdir makes a directory
 
-#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5702:5761#L273)
+#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5763:5822#L276)
 ``` go
 func (c *Client) MkdirAll(path string, _ os.FileMode) error
 ```
 MkdirAll like mkdir -p, but for webdav
 
-#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6550:6600#L308)
+#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6611:6661#L311)
 ``` go
 func (c *Client) Read(path string) ([]byte, error)
 ```
 Read reads the contents of a remote file
 
-#### <a name="Client.ReadDir">func</a> (\*Client) [ReadDir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=2542:2602#L120)
+#### <a name="Client.ReadDir">func</a> (\*Client) [ReadDir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=2603:2663#L123)
 ``` go
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error)
 ```
 ReadDir reads the contents of a remote directory
 
-#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6911:6974#L326)
+#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6972:7035#L329)
 ``` go
 func (c *Client) ReadStream(path string) (io.ReadCloser, error)
 ```
 ReadStream reads the stream for a given path
 
-#### <a name="Client.Remove">func</a> (\*Client) [Remove](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=4973:5015#L239)
+#### <a name="Client.Remove">func</a> (\*Client) [Remove](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5034:5076#L242)
 ``` go
 func (c *Client) Remove(path string) error
 ```
 Remove removes a remote file
 
-#### <a name="Client.RemoveAll">func</a> (\*Client) [RemoveAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5081:5126#L244)
+#### <a name="Client.RemoveAll">func</a> (\*Client) [RemoveAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5142:5187#L247)
 ``` go
 func (c *Client) RemoveAll(path string) error
 ```
 RemoveAll removes remote files
 
-#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6210:6280#L298)
+#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6271:6341#L301)
 ``` go
 func (c *Client) Rename(oldpath, newpath string, overwrite bool) error
 ```
 Rename moves a file from A to B
 
-#### <a name="Client.SetHeader">func</a> (\*Client) [SetHeader](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1099:1144#L62)
+#### <a name="Client.SetHeader">func</a> (\*Client) [SetHeader](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1160:1205#L65)
 ``` go
 func (c *Client) SetHeader(key, value string)
 ```
 SetHeader lets us set arbitrary headers for a given client
 
-#### <a name="Client.SetTimeout">func</a> (\*Client) [SetTimeout](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1244:1294#L67)
+#### <a name="Client.SetTimeout">func</a> (\*Client) [SetTimeout](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1305:1355#L70)
 ``` go
 func (c *Client) SetTimeout(timeout time.Duration)
 ```
 SetTimeout exposes the ability to set a time limit for requests
 
-#### <a name="Client.SetTransport">func</a> (\*Client) [SetTransport](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1387:1445#L72)
+#### <a name="Client.SetTransport">func</a> (\*Client) [SetTransport](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=1448:1506#L75)
 ``` go
 func (c *Client) SetTransport(transport http.RoundTripper)
 ```
 SetTransport exposes the ability to define custom transports
 
-#### <a name="Client.Stat">func</a> (\*Client) [Stat](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=3929:3984#L187)
+#### <a name="Client.Stat">func</a> (\*Client) [Stat](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=3990:4045#L190)
 ``` go
 func (c *Client) Stat(path string) (os.FileInfo, error)
 ```
 Stat returns the file stats for a specified path
 
-#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7265:7334#L341)
+#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7326:7395#L344)
 ``` go
 func (c *Client) Write(path string, data []byte, _ os.FileMode) error
 ```
 Write writes data to a given path
 
-#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7690:7770#L364)
+#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7751:7831#L367)
 ``` go
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error
 ```
@@ -415,9 +415,9 @@ type DigestAuth struct {
 ```
 DigestAuth structure holds our credentials
 
-#### <a name="DigestAuth.Authorize">func</a> (\*DigestAuth) [Authorize](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=577:646#L36)
+#### <a name="DigestAuth.Authorize">func</a> (\*DigestAuth) [Authorize](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=577:654#L36)
 ``` go
-func (d *DigestAuth) Authorize(c *Client, method string, path string)
+func (d *DigestAuth) Authorize(req *http.Request, method string, path string)
 ```
 Authorize the current request
 
@@ -507,7 +507,7 @@ func (f File) Sys() interface{}
 ```
 Sys ????
 
-### <a name="NoAuth">type</a> [NoAuth](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=442:490#L32)
+### <a name="NoAuth">type</a> [NoAuth](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=481:529#L35)
 ``` go
 type NoAuth struct {
     // contains filtered or unexported fields
@@ -515,25 +515,25 @@ type NoAuth struct {
 ```
 NoAuth structure holds our credentials
 
-#### <a name="NoAuth.Authorize">func</a> (\*NoAuth) [Authorize](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=785:850#L53)
+#### <a name="NoAuth.Authorize">func</a> (\*NoAuth) [Authorize](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=824:897#L56)
 ``` go
-func (n *NoAuth) Authorize(c *Client, method string, path string)
+func (n *NoAuth) Authorize(req *http.Request, method string, path string)
 ```
 Authorize the current request
 
-#### <a name="NoAuth.Pass">func</a> (\*NoAuth) [Pass](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=703:733#L48)
+#### <a name="NoAuth.Pass">func</a> (\*NoAuth) [Pass](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=742:772#L51)
 ``` go
 func (n *NoAuth) Pass() string
 ```
 Pass returns the current password
 
-#### <a name="NoAuth.Type">func</a> (\*NoAuth) [Type](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=529:559#L38)
+#### <a name="NoAuth.Type">func</a> (\*NoAuth) [Type](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=568:598#L41)
 ``` go
 func (n *NoAuth) Type() string
 ```
 Type identifies the authenticator
 
-#### <a name="NoAuth.User">func</a> (\*NoAuth) [User](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=615:645#L43)
+#### <a name="NoAuth.User">func</a> (\*NoAuth) [User](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=654:684#L46)
 ``` go
 func (n *NoAuth) User() string
 ```
