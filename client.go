@@ -5,9 +5,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
-	pathpkg "path"
 	"strings"
 	"sync"
 	"time"
@@ -138,11 +136,9 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 
 		if p := getProps(r, "200"); p != nil {
 			f := new(File)
-			if ps, err := url.QueryUnescape(r.Href); err == nil {
-				f.name = pathpkg.Base(ps)
-			} else {
-				f.name = p.Name
-			}
+
+			f.name = p.Name
+
 			f.path = path + f.name
 			f.modified = parseModified(&p.Modified)
 			f.etag = p.ETag
