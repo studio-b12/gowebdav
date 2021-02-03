@@ -138,7 +138,7 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 
 		if p := getProps(r, "200"); p != nil {
 			f := new(File)
-			if ps, err := url.QueryUnescape(r.Href); err == nil {
+			if ps, err := url.PathUnescape(r.Href); err == nil {
 				f.name = pathpkg.Base(ps)
 			} else {
 				f.name = p.Name
