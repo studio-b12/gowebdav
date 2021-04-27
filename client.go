@@ -15,9 +15,10 @@ import (
 
 // Client defines our structure
 type Client struct {
-	root    string
-	headers http.Header
-	c       *http.Client
+	root        string
+	headers     http.Header
+	interceptor func(method string, rq *http.Request)
+	c           *http.Client
 
 	authMutex sync.Mutex
 	auth      Authenticator
@@ -58,12 +59,17 @@ func (n *NoAuth) Authorize(req *http.Request, method string, path string) {
 
 // NewClient creates a new instance of client
 func NewClient(uri, user, pw string) *Client {
-	return &Client{FixSlash(uri), make(http.Header), &http.Client{}, sync.Mutex{}, &NoAuth{user, pw}}
+	return &Client{FixSlash(uri), make(http.Header), nil, &http.Client{}, sync.Mutex{}, &NoAuth{user, pw}}
 }
 
 // SetHeader lets us set arbitrary headers for a given client
 func (c *Client) SetHeader(key, value string) {
 	c.headers.Add(key, value)
+}
+
+// SetInterceptor lets us set an arbitrary interceptor for a given client
+func (c *Client) SetInterceptor(interceptor func(method string, rq *http.Request)) {
+	c.interceptor = interceptor
 }
 
 // SetTimeout exposes the ability to set a time limit for requests

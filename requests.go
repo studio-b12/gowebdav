@@ -43,6 +43,10 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 		intercept(r)
 	}
 
+	if c.interceptor != nil {
+		c.interceptor(method, r)
+	}
+
 	rs, err := c.c.Do(r)
 	if err != nil {
 		return nil, err
