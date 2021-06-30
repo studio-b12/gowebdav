@@ -142,7 +142,9 @@ func (c *Client) doCopyMove(method string, oldpath string, newpath string, overw
 
 func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) error {
 	s, data := c.doCopyMove(method, oldpath, newpath, overwrite)
-	defer data.Close()
+	if data != nil {
+		defer data.Close()
+	}
 
 	switch s {
 	case 201, 204:
