@@ -32,7 +32,7 @@ func newPathErrorErr(op string, path string, err error) error {
 	}
 }
 
-// PathEscape escapes all segemnts of a given path
+// PathEscape escapes all segments of a given path
 func PathEscape(path string) string {
 	s := strings.Split(path, "/")
 	for i, e := range s {
@@ -51,9 +51,10 @@ func FixSlash(s string) string {
 
 // FixSlashes appends and prepends a / if they are missing
 func FixSlashes(s string) string {
-	if s[0] != '/' {
+	if !strings.HasPrefix(s, "/") {
 		s = "/" + s
 	}
+
 	return FixSlash(s)
 }
 
