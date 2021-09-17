@@ -43,3 +43,25 @@ func TestEscapeURL(t *testing.T) {
 		t.Error("expected: " + ex + " got: " + u.String())
 	}
 }
+
+func TestFixSlashes(t *testing.T) {
+	expected := "/"
+
+	if got := FixSlashes(""); got != expected {
+		t.Errorf("expected: %q, got: %q", expected, got)
+	}
+
+	expected = "/path/"
+
+	if got := FixSlashes("path"); got != expected {
+		t.Errorf("expected: %q, got: %q", expected, got)
+	}
+
+	if got := FixSlashes("/path"); got != expected {
+		t.Errorf("expected: %q, got: %q", expected, got)
+	}
+
+	if got := FixSlashes("path/"); got != expected {
+		t.Errorf("expected: %q, got: %q", expected, got)
+	}
+}

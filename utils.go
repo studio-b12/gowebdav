@@ -51,9 +51,10 @@ func FixSlash(s string) string {
 
 // FixSlashes appends and prepends a / if they are missing
 func FixSlashes(s string) string {
-	if s[0] != '/' {
+	if !strings.HasPrefix(s, "/") {
 		s = "/" + s
 	}
+
 	return FixSlash(s)
 }
 
