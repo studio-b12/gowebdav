@@ -3,6 +3,7 @@ package gowebdav
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -340,6 +341,43 @@ func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 
 	if rs.StatusCode == 200 {
 		return rs.Body, nil
+	}
+
+	rs.Body.Close()
+	return nil, newPathError("ReadStream", path, rs.StatusCode)
+}
+
+// ReadStreamRange reads the stream representing a subset of bytes for a given path,
+// utilizing HTTP Range Requests if the server supports it.
+// The range is expressed as offset from the start of the file and length, for example
+// offset=10, length=10 will return bytes 10 through 19.
+//
+// If the server does not support partial content requests and returns full content instead,
+// this function will emulate the behavior by skipping `offset` bytes and limiting the result
+// to `length`.
+func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadCloser, error) {
+	rs, err := c.req("GET", path, nil, func(r *http.Request) {
+		r.Header.Add("Range", fmt.Sprintf("bytes=%v-%v", offset, offset+length-1))
+	})
+	if err != nil {
+		return nil, newPathErrorErr("ReadStreamRange", path, err)
+	}
+
+	if rs.StatusCode == http.StatusPartialContent {
+		// server supported partial content, return as-is.
+		return rs.Body, nil
+	}
+
+	// server returned success, but did not support partial content, so we have the whole
+	// stream in rs.Body
+	if rs.StatusCode == 200 {
+		// discard first 'offset' bytes.
+		if _, err := io.Copy(io.Discard, io.LimitReader(rs.Body, offset)); err != nil {
+			return nil, newPathErrorErr("ReadStreamRange", path, err)
+		}
+
+		// return a io.ReadCloser that is limited to `length` bytes.
+		return &limitedReadCloser{rs.Body, int(length)}, nil
 	}
 
 	rs.Body.Close()
