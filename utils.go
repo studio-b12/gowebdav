@@ -108,3 +108,28 @@ func parseXML(data io.Reader, resp interface{}, parse func(resp interface{}) err
 	}
 	return nil
 }
+
+// limitedReadCloser wraps a io.ReadCloser and limits the number of bytes that can be read from it.
+type limitedReadCloser struct {
+	rc        io.ReadCloser
+	remaining int
+}
+
+func (l *limitedReadCloser) Read(buf []byte) (int, error) {
+	if l.remaining <= 0 {
+		return 0, io.EOF
+	}
+
+	if len(buf) > l.remaining {
+		buf = buf[0:l.remaining]
+	}
+
+	n, err := l.rc.Read(buf)
+	l.remaining -= n
+
+	return n, err
+}
+
+func (l *limitedReadCloser) Close() error {
+	return l.rc.Close()
+}
