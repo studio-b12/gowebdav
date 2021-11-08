@@ -10,15 +10,30 @@ import (
 )
 
 func (c *Client) req(method, path string, body io.Reader, intercept func(*http.Request)) (req *http.Response, err error) {
-	// Tee the body, because if authorization fails we will need to read from it again.
 	var r *http.Request
-	var ba bytes.Buffer
-	bb := io.TeeReader(body, &ba)
+	var retryBuf io.Reader
+
+	// If the authorization fails, we will need to restart reading
+	// from the passed body stream.
+	// When body is seekable, use seek to reset the streams
+	// cursor to the start.
+	// Otherwise, copy the stream into a buffer while uploading
+	// and use the buffers content on retry.
+	if sk, ok := body.(io.Seeker); ok {
+		if _, err = sk.Seek(0, io.SeekStart); err != nil {
+			return
+		}
+		retryBuf = body
+	} else {
+		buff := &bytes.Buffer{}
+		retryBuf = buff
+		body = io.TeeReader(body, buff)
+	}
 
 	if body == nil {
 		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), nil)
 	} else {
-		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), bb)
+		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), body)
 	}
 
 	if err != nil {
@@ -70,7 +85,7 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 		if body == nil {
 			return c.req(method, path, nil, intercept)
 		} else {
-			return c.req(method, path, &ba, intercept)
+			return c.req(method, path, retryBuf, intercept)
 		}
 
 	} else if rs.StatusCode == 401 {
