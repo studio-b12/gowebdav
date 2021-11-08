@@ -13,27 +13,26 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 	var r *http.Request
 	var retryBuf io.Reader
 
-	// If the authorization fails, we will need to restart reading
-	// from the passed body stream.
-	// When body is seekable, use seek to reset the streams
-	// cursor to the start.
-	// Otherwise, copy the stream into a buffer while uploading
-	// and use the buffers content on retry.
-	if sk, ok := body.(io.Seeker); ok {
-		if _, err = sk.Seek(0, io.SeekStart); err != nil {
-			return
+	if body != nil {
+		// If the authorization fails, we will need to restart reading
+		// from the passed body stream.
+		// When body is seekable, use seek to reset the streams
+		// cursor to the start.
+		// Otherwise, copy the stream into a buffer while uploading
+		// and use the buffers content on retry.
+		if sk, ok := body.(io.Seeker); ok {
+			if _, err = sk.Seek(0, io.SeekStart); err != nil {
+				return
+			}
+			retryBuf = body
+		} else {
+			buff := &bytes.Buffer{}
+			retryBuf = buff
+			body = io.TeeReader(body, buff)
 		}
-		retryBuf = body
-	} else {
-		buff := &bytes.Buffer{}
-		retryBuf = buff
-		body = io.TeeReader(body, buff)
-	}
-
-	if body == nil {
-		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), nil)
-	} else {
 		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), body)
+	} else {
+		r, err = http.NewRequest(method, PathEscape(Join(c.root, path)), nil)
 	}
 
 	if err != nil {
@@ -82,12 +81,9 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 			return rs, newPathError("Authorize", c.root, rs.StatusCode)
 		}
 
-		if body == nil {
-			return c.req(method, path, nil, intercept)
-		} else {
-			return c.req(method, path, retryBuf, intercept)
-		}
-
+		// retryBuf will be nil if body was nil initially so no check
+		// for body == nil is required here.
+		return c.req(method, path, retryBuf, intercept)
 	} else if rs.StatusCode == 401 {
 		return rs, newPathError("Authorize", c.root, rs.StatusCode)
 	}
