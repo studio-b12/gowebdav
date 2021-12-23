@@ -92,16 +92,8 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 }
 
 func (c *Client) mkcol(path string) int {
-	rs, err := c.req("MKCOL", path, nil, nil)
-	if err != nil {
-		return 400
-	}
+	rs, _ := c.req("MKCOL", path, nil, nil)
 	defer rs.Body.Close()
-
-	if rs.StatusCode == 201 || rs.StatusCode == 405 {
-		return 201
-	}
-
 	return rs.StatusCode
 }
 
@@ -146,7 +138,7 @@ func (c *Client) doCopyMove(method string, oldpath string, newpath string, overw
 		}
 	})
 	if err != nil {
-		return 400, nil
+		return rs.StatusCode, nil
 	}
 	return rs.StatusCode, rs.Body
 }
@@ -178,12 +170,8 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 }
 
 func (c *Client) put(path string, stream io.Reader) int {
-	rs, err := c.req("PUT", path, stream, nil)
-	if err != nil {
-		return 400
-	}
+	rs, _ := c.req("PUT", path, stream, nil)
 	defer rs.Body.Close()
-
 	return rs.StatusCode
 }
 
