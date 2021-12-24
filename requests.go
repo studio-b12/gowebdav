@@ -93,6 +93,9 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 
 func (c *Client) mkcol(path string) int {
 	rs, _ := c.req("MKCOL", path, nil, nil)
+	if rs == nil {
+		return 400
+	}
 	defer rs.Body.Close()
 	return rs.StatusCode
 }
@@ -129,7 +132,7 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 }
 
 func (c *Client) doCopyMove(method string, oldpath string, newpath string, overwrite bool) (int, io.ReadCloser) {
-	rs, err := c.req(method, oldpath, nil, func(rq *http.Request) {
+	rs, _ := c.req(method, oldpath, nil, func(rq *http.Request) {
 		rq.Header.Add("Destination", Join(c.root, newpath))
 		if overwrite {
 			rq.Header.Add("Overwrite", "T")
@@ -137,8 +140,8 @@ func (c *Client) doCopyMove(method string, oldpath string, newpath string, overw
 			rq.Header.Add("Overwrite", "F")
 		}
 	})
-	if err != nil {
-		return rs.StatusCode, nil
+	if rs == nil {
+		return 400, nil
 	}
 	return rs.StatusCode, rs.Body
 }
@@ -171,6 +174,9 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 
 func (c *Client) put(path string, stream io.Reader) int {
 	rs, _ := c.req("PUT", path, stream, nil)
+	if rs == nil {
+		return 400
+	}
 	defer rs.Body.Close()
 	return rs.StatusCode
 }
