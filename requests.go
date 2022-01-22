@@ -135,7 +135,7 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 	defer rs.Body.Close()
 
 	if rs.StatusCode != 207 {
-		return fmt.Errorf("%s - %s %s", rs.Status, "PROPFIND", path)
+		return newPathError("PROPFIND", path, rs.StatusCode)
 	}
 
 	return parseXML(rs.Body, resp, parse)
