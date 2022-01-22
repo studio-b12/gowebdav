@@ -4,13 +4,16 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	d "github.com/studio-b12/gowebdav"
 	"io"
+	"io/fs"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	d "github.com/studio-b12/gowebdav"
 )
 
 func main() {
@@ -190,8 +193,18 @@ func cmdCp(c *d.Client, p0, p1 string) (err error) {
 
 func cmdPut(c *d.Client, p0, p1 string) (err error) {
 	if p1 == "" {
-		p1 = filepath.Join(".", p0)
+		p1 = path.Join(".", p0)
+	} else {
+		var fi fs.FileInfo
+		fi, err = c.Stat(p0)
+		if err != nil && !d.IsErrNotFound(err) {
+			return
+		}
+		if !d.IsErrNotFound(err) && fi.IsDir() {
+			p0 = path.Join(p0, p1)
+		}
 	}
+
 	stream, err := getStream(p1)
 	if err != nil {
 		return
