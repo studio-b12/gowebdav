@@ -91,18 +91,19 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 	return rs, err
 }
 
-func (c *Client) mkcol(path string) int {
+func (c *Client) mkcol(path string) (status int, err error) {
 	rs, err := c.req("MKCOL", path, nil, nil)
 	if err != nil {
-		return 400
+		return
 	}
 	defer rs.Body.Close()
 
-	if rs.StatusCode == 201 || rs.StatusCode == 405 {
-		return 201
+	status = rs.StatusCode
+	if status == 405 {
+		status = 201
 	}
 
-	return rs.StatusCode
+	return
 }
 
 func (c *Client) options(path string) (*http.Response, error) {
@@ -136,7 +137,16 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 	return parseXML(rs.Body, resp, parse)
 }
 
-func (c *Client) doCopyMove(method string, oldpath string, newpath string, overwrite bool) (int, io.ReadCloser) {
+func (c *Client) doCopyMove(
+	method string,
+	oldpath string,
+	newpath string,
+	overwrite bool,
+) (
+	status int,
+	r io.ReadCloser,
+	err error,
+) {
 	rs, err := c.req(method, oldpath, nil, func(rq *http.Request) {
 		rq.Header.Add("Destination", Join(c.root, newpath))
 		if overwrite {
@@ -146,13 +156,18 @@ func (c *Client) doCopyMove(method string, oldpath string, newpath string, overw
 		}
 	})
 	if err != nil {
-		return 400, nil
+		return
 	}
-	return rs.StatusCode, rs.Body
+	status = rs.StatusCode
+	r = rs.Body
+	return
 }
 
-func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) error {
-	s, data := c.doCopyMove(method, oldpath, newpath, overwrite)
+func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) (err error) {
+	s, data, err := c.doCopyMove(method, oldpath, newpath, overwrite)
+	if err != nil {
+		return
+	}
 	if data != nil {
 		defer data.Close()
 	}
@@ -177,14 +192,15 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 	return newPathError(method, oldpath, s)
 }
 
-func (c *Client) put(path string, stream io.Reader) int {
+func (c *Client) put(path string, stream io.Reader) (status int, err error) {
 	rs, err := c.req("PUT", path, stream, nil)
 	if err != nil {
-		return 400
+		return
 	}
 	defer rs.Body.Close()
 
-	return rs.StatusCode
+	status = rs.StatusCode
+	return
 }
 
 func (c *Client) createParentCollection(itemPath string) (err error) {
