@@ -138,7 +138,7 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 
 func (c *Client) doCopyMove(method string, oldpath string, newpath string, overwrite bool) (int, io.ReadCloser) {
 	rs, err := c.req(method, oldpath, nil, func(rq *http.Request) {
-		rq.Header.Add("Destination", Join(c.root, newpath))
+		rq.Header.Add("Destination", PathEscape(Join(c.root, newpath)))
 		if overwrite {
 			rq.Header.Add("Overwrite", "T")
 		} else {
