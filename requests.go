@@ -14,10 +14,6 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 	var retryBuf io.Reader
 
 	if body != nil {
-		// Because Request#Do closes closable streams, Seeker#Seek
-		// will fail on retry because stream is already  closed.
-		// This inhibits the closing of the passed stream.
-		body = closeInhibitor{body}
 		// If the authorization fails, we will need to restart reading
 		// from the passed body stream.
 		// When body is seekable, use seek to reset the streams
