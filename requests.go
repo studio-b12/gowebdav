@@ -14,10 +14,10 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 	var retryBuf io.Reader
 
 	if body != nil {
-		// Because Request#Do closes closable streams, Seeker#Seek
-		// will fail on retry because stream is already  closed.
-		// This inhibits the closing of the passed stream.
-		body = closeInhibitor{body}
+		if cl, ok := body.(io.Closer); ok {
+			body = closeInhibitor{body}
+			defer cl.Close()
+		}
 		// If the authorization fails, we will need to restart reading
 		// from the passed body stream.
 		// When body is seekable, use seek to reset the streams
@@ -28,7 +28,6 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 			if _, err = sk.Seek(0, io.SeekStart); err != nil {
 				return
 			}
-			retryBuf = body
 		} else {
 			buff := &bytes.Buffer{}
 			retryBuf = buff
