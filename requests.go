@@ -33,6 +33,7 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 			if _, err = sk.Seek(0, io.SeekStart); err != nil {
 				return
 			}
+			retryBuf = body
 		} else {
 			buff := &bytes.Buffer{}
 			retryBuf = buff
