@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -14,22 +13,6 @@ import (
 
 func log(msg interface{}) {
 	fmt.Println(msg)
-}
-
-func newPathError(op string, path string, statusCode int) error {
-	return &os.PathError{
-		Op:   op,
-		Path: path,
-		Err:  fmt.Errorf("%d", statusCode),
-	}
-}
-
-func newPathErrorErr(op string, path string, err error) error {
-	return &os.PathError{
-		Op:   op,
-		Path: path,
-		Err:  err,
-	}
 }
 
 // PathEscape escapes all segments of a given path

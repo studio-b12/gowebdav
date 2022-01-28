@@ -269,9 +269,12 @@ func (c *Client) RemoveAll(path string) error {
 }
 
 // Mkdir makes a directory
-func (c *Client) Mkdir(path string, _ os.FileMode) error {
+func (c *Client) Mkdir(path string, _ os.FileMode) (err error) {
 	path = FixSlashes(path)
-	status := c.mkcol(path)
+	status, err := c.mkcol(path)
+	if err != nil {
+		return
+	}
 	if status == 201 {
 		return nil
 	}
@@ -280,12 +283,16 @@ func (c *Client) Mkdir(path string, _ os.FileMode) error {
 }
 
 // MkdirAll like mkdir -p, but for webdav
-func (c *Client) MkdirAll(path string, _ os.FileMode) error {
+func (c *Client) MkdirAll(path string, _ os.FileMode) (err error) {
 	path = FixSlashes(path)
-	status := c.mkcol(path)
+	status, err := c.mkcol(path)
+	if err != nil {
+		return
+	}
 	if status == 201 {
 		return nil
-	} else if status == 409 {
+	}
+	if status == 409 {
 		paths := strings.Split(path, "/")
 		sub := "/"
 		for _, e := range paths {
@@ -293,7 +300,10 @@ func (c *Client) MkdirAll(path string, _ os.FileMode) error {
 				continue
 			}
 			sub += e + "/"
-			status = c.mkcol(sub)
+			status, err = c.mkcol(sub)
+			if err != nil {
+				return
+			}
 			if status != 201 {
 				return newPathError("MkdirAll", sub, status)
 			}
@@ -385,22 +395,29 @@ func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadClos
 }
 
 // Write writes data to a given path
-func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
-	s := c.put(path, bytes.NewReader(data))
+func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
+	s, err := c.put(path, bytes.NewReader(data))
+	if err != nil {
+		return
+	}
+
 	switch s {
 
 	case 200, 201, 204:
 		return nil
 
 	case 409:
-		err := c.createParentCollection(path)
+		err = c.createParentCollection(path)
 		if err != nil {
-			return err
+			return
 		}
 
-		s = c.put(path, bytes.NewReader(data))
+		s, err = c.put(path, bytes.NewReader(data))
+		if err != nil {
+			return
+		}
 		if s == 200 || s == 201 || s == 204 {
-			return nil
+			return
 		}
 	}
 
@@ -408,14 +425,17 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) error {
 }
 
 // WriteStream writes a stream
-func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error {
+func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error) {
 
-	err := c.createParentCollection(path)
+	err = c.createParentCollection(path)
 	if err != nil {
 		return err
 	}
 
-	s := c.put(path, stream)
+	s, err := c.put(path, stream)
+	if err != nil {
+		return err
+	}
 
 	switch s {
 	case 200, 201, 204:
