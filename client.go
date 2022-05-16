@@ -63,6 +63,14 @@ func NewClient(uri, user, pw string) *Client {
 	return &Client{FixSlash(uri), make(http.Header), nil, &http.Client{}, sync.Mutex{}, &NoAuth{user, pw}}
 }
 
+func NewClientProxy(uri, user, pw string, proxyUrl string) (*Client, error) {
+	proxyUrlParsed, err := url.Parse(proxyUrl)
+	if err != nil {
+		return nil, err
+	}
+	return &Client{FixSlash(uri), make(http.Header), nil, &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrlParsed)}}, sync.Mutex{}, &NoAuth{user, pw}}, nil
+}
+
 // SetHeader lets us set arbitrary headers for a given client
 func (c *Client) SetHeader(key, value string) {
 	c.headers.Add(key, value)
