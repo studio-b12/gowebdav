@@ -367,7 +367,11 @@ func (c *Client) ReadStream(path string) (io.ReadCloser, error) {
 // to `length`.
 func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadCloser, error) {
 	rs, err := c.req("GET", path, nil, func(r *http.Request) {
-		r.Header.Add("Range", fmt.Sprintf("bytes=%v-%v", offset, offset+length-1))
+		if length > 0 {
+			r.Header.Add("Range", fmt.Sprintf("bytes=%d-%d", offset, offset+length-1))
+		} else {
+			r.Header.Add("Range", fmt.Sprintf("bytes=%d-", offset))
+		}
 	})
 	if err != nil {
 		return nil, newPathErrorErr("ReadStreamRange", path, err)
