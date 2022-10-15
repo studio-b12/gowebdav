@@ -410,7 +410,7 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
 	case 200, 201, 204:
 		return nil
 
-	case 409:
+	case 404, 409:
 		err = c.createParentCollection(path)
 		if err != nil {
 			return
