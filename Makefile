@@ -9,7 +9,7 @@ ${BIN}: ${SRC}
 	go build -o $@ ./cmd/gowebdav
 
 test:
-	go test -v --short ./...
+	go test -modfile=go_test.mod -v -short -cover ./...
 
 api:
 	@sed '/^## API$$/,$$d' -i README.md
@@ -25,7 +25,7 @@ check:
 	@echo
 	gocyclo -over 15 .
 	@echo
-	golint ./...
+	go vet -modfile=go_test.mod ./...
 
 clean:
 	@rm -f ${BIN}
