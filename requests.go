@@ -2,8 +2,8 @@ package gowebdav
 
 import (
 	"bytes"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -181,7 +181,7 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 
 	case 207:
 		// TODO handle multistat errors, worst case ...
-		log(fmt.Sprintf(" TODO handle %s - %s multistatus result %s", method, oldpath, String(data)))
+		log.Printf("TODO handle %s - %s multistatus result %s\n", method, oldpath, String(data))
 
 	case 409:
 		err := c.createParentCollection(newpath)

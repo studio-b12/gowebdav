@@ -3,17 +3,12 @@ package gowebdav
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
-
-func log(msg interface{}) {
-	fmt.Println(msg)
-}
 
 // PathEscape escapes all segments of a given path
 func PathEscape(path string) string {
