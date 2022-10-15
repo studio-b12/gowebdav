@@ -1,12 +1,13 @@
 # GoWebDAV
 
-[![Build Status](https://travis-ci.org/studio-b12/gowebdav.svg?branch=master)](https://travis-ci.org/studio-b12/gowebdav)
+[![Build Status](https://github.com/studio-b12/gowebdav/actions/workflows/tests.yml/badge.svg)](https://github.com/studio-b12/gowebdav/actions)
 [![GoDoc](https://godoc.org/github.com/studio-b12/gowebdav?status.svg)](https://godoc.org/github.com/studio-b12/gowebdav)
 [![Go Report Card](https://goreportcard.com/badge/github.com/studio-b12/gowebdav)](https://goreportcard.com/report/github.com/studio-b12/gowebdav)
 
 A golang WebDAV client library.
 
 ## Main features
+
 `gowebdav` library allows to perform following actions on the remote WebDAV server:
 * [create path](#create-path-on-a-webdav-server)
 * [get files list](#get-files-list)
