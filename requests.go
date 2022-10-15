@@ -130,10 +130,7 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 	}
 	defer rs.Body.Close()
 
-	switch rs.StatusCode {
-	case 207:
-		return newPathError("PROPFIND", path, rs.StatusCode)
-	case 404:
+	if rs.StatusCode != 207 {
 		return newPathError("PROPFIND", path, rs.StatusCode)
 	}
 
