@@ -1,6 +1,7 @@
 # GoWebDAV
 
-[![Build Status](https://github.com/studio-b12/gowebdav/actions/workflows/tests.yml/badge.svg)](https://github.com/studio-b12/gowebdav/actions)
+[![Unit Tests Status](https://github.com/studio-b12/gowebdav/actions/workflows/tests.yml/badge.svg)](https://github.com/studio-b12/gowebdav/actions/workflows/tests.yml)
+[![Build Artifacts Status](https://github.com/studio-b12/gowebdav/actions/workflows/artifacts.yml/badge.svg)](https://github.com/studio-b12/gowebdav/actions/workflows/artifacts.yml)
 [![GoDoc](https://godoc.org/github.com/studio-b12/gowebdav?status.svg)](https://godoc.org/github.com/studio-b12/gowebdav)
 [![Go Report Card](https://goreportcard.com/badge/github.com/studio-b12/gowebdav)](https://goreportcard.com/report/github.com/studio-b12/gowebdav)
 
