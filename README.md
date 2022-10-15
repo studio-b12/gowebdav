@@ -161,6 +161,8 @@ included.
 ### <a name="pkg-index">Index</a>
 * [func FixSlash(s string) string](#FixSlash)
 * [func FixSlashes(s string) string](#FixSlashes)
+* [func IsErrCode(err error, code int) bool](#IsErrCode)
+* [func IsErrNotFound(err error) bool](#IsErrNotFound)
 * [func Join(path0 string, path1 string) string](#Join)
 * [func PathEscape(path string) string](#PathEscape)
 * [func ReadConfig(uri, netrc string) (string, string)](#ReadConfig)
@@ -175,8 +177,8 @@ included.
   * [func NewClient(uri, user, pw string) *Client](#NewClient)
   * [func (c *Client) Connect() error](#Client.Connect)
   * [func (c *Client) Copy(oldpath, newpath string, overwrite bool) error](#Client.Copy)
-  * [func (c *Client) Mkdir(path string, _ os.FileMode) error](#Client.Mkdir)
-  * [func (c *Client) MkdirAll(path string, _ os.FileMode) error](#Client.MkdirAll)
+  * [func (c *Client) Mkdir(path string, _ os.FileMode) (err error)](#Client.Mkdir)
+  * [func (c *Client) MkdirAll(path string, _ os.FileMode) (err error)](#Client.MkdirAll)
   * [func (c *Client) Read(path string) ([]byte, error)](#Client.Read)
   * [func (c *Client) ReadDir(path string) ([]os.FileInfo, error)](#Client.ReadDir)
   * [func (c *Client) ReadStream(path string) (io.ReadCloser, error)](#Client.ReadStream)
@@ -189,8 +191,8 @@ included.
   * [func (c *Client) SetTimeout(timeout time.Duration)](#Client.SetTimeout)
   * [func (c *Client) SetTransport(transport http.RoundTripper)](#Client.SetTransport)
   * [func (c *Client) Stat(path string) (os.FileInfo, error)](#Client.Stat)
-  * [func (c *Client) Write(path string, data []byte, _ os.FileMode) error](#Client.Write)
-  * [func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error](#Client.WriteStream)
+  * [func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error)](#Client.Write)
+  * [func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error)](#Client.WriteStream)
 * [type DigestAuth](#DigestAuth)
   * [func (d *DigestAuth) Authorize(req *http.Request, method string, path string)](#DigestAuth.Authorize)
   * [func (d *DigestAuth) Pass() string](#DigestAuth.Pass)
@@ -212,32 +214,49 @@ included.
   * [func (n *NoAuth) Pass() string](#NoAuth.Pass)
   * [func (n *NoAuth) Type() string](#NoAuth.Type)
   * [func (n *NoAuth) User() string](#NoAuth.User)
+* [type StatusError](#StatusError)
+  * [func (se StatusError) Error() string](#StatusError.Error)
 
 ##### <a name="pkg-examples">Examples</a>
 * [PathEscape](#example_PathEscape)
 
 ##### <a name="pkg-files">Package files</a>
-[basicAuth.go](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go) [client.go](https://github.com/studio-b12/gowebdav/blob/master/client.go) [digestAuth.go](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go) [doc.go](https://github.com/studio-b12/gowebdav/blob/master/doc.go) [file.go](https://github.com/studio-b12/gowebdav/blob/master/file.go) [netrc.go](https://github.com/studio-b12/gowebdav/blob/master/netrc.go) [requests.go](https://github.com/studio-b12/gowebdav/blob/master/requests.go) [utils.go](https://github.com/studio-b12/gowebdav/blob/master/utils.go) 
+[basicAuth.go](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go) [client.go](https://github.com/studio-b12/gowebdav/blob/master/client.go) [digestAuth.go](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go) [doc.go](https://github.com/studio-b12/gowebdav/blob/master/doc.go) [errors.go](https://github.com/studio-b12/gowebdav/blob/master/errors.go) [file.go](https://github.com/studio-b12/gowebdav/blob/master/file.go) [netrc.go](https://github.com/studio-b12/gowebdav/blob/master/netrc.go) [requests.go](https://github.com/studio-b12/gowebdav/blob/master/requests.go) [utils.go](https://github.com/studio-b12/gowebdav/blob/master/utils.go) 
 
-### <a name="FixSlash">func</a> [FixSlash](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=707:737#L45)
+### <a name="FixSlash">func</a> [FixSlash](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=354:384#L23)
 ``` go
 func FixSlash(s string) string
 ```
 FixSlash appends a trailing / to our string
 
-### <a name="FixSlashes">func</a> [FixSlashes](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=859:891#L53)
+### <a name="FixSlashes">func</a> [FixSlashes](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=506:538#L31)
 ``` go
 func FixSlashes(s string) string
 ```
 FixSlashes appends and prepends a / if they are missing
 
-### <a name="Join">func</a> [Join](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=992:1036#L62)
+### <a name="IsErrCode">func</a> [IsErrCode](https://github.com/studio-b12/gowebdav/blob/master/errors.go?s=355:395#L21)
+``` go
+func IsErrCode(err error, code int) bool
+```
+IsErrCode returns true if the given error
+is an os.PathError wrapping a StatusError
+with the given status code.
+
+### <a name="IsErrNotFound">func</a> [IsErrNotFound](https://github.com/studio-b12/gowebdav/blob/master/errors.go?s=587:621#L31)
+``` go
+func IsErrNotFound(err error) bool
+```
+IsErrNotFound is shorthand for IsErrCode
+for status 404.
+
+### <a name="Join">func</a> [Join](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=639:683#L40)
 ``` go
 func Join(path0 string, path1 string) string
 ```
 Join joins two paths
 
-### <a name="PathEscape">func</a> [PathEscape](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=506:541#L36)
+### <a name="PathEscape">func</a> [PathEscape](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=153:188#L14)
 ``` go
 func PathEscape(path string) string
 ```
@@ -250,7 +269,7 @@ func ReadConfig(uri, netrc string) (string, string)
 ReadConfig reads login and password configuration from ~/.netrc
 machine foo.com login username password 123456
 
-### <a name="String">func</a> [String](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=1166:1197#L67)
+### <a name="String">func</a> [String](https://github.com/studio-b12/gowebdav/blob/master/utils.go?s=813:844#L45)
 ``` go
 func String(r io.Reader) string
 ```
@@ -272,6 +291,7 @@ Authenticator stub
 type BasicAuth struct {
     // contains filtered or unexported fields
 }
+
 ```
 BasicAuth structure holds our credentials
 
@@ -304,6 +324,7 @@ User holds the BasicAuth username
 type Client struct {
     // contains filtered or unexported fields
 }
+
 ```
 Client defines our structure
 
@@ -319,25 +340,25 @@ func (c *Client) Connect() error
 ```
 Connect connects to our dav server
 
-#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6702:6770#L313)
+#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6818:6886#L323)
 ``` go
 func (c *Client) Copy(oldpath, newpath string, overwrite bool) error
 ```
 Copy copies a file from A to B
 
-#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5793:5849#L272)
+#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5793:5855#L272)
 ``` go
-func (c *Client) Mkdir(path string, _ os.FileMode) error
+func (c *Client) Mkdir(path string, _ os.FileMode) (err error)
 ```
 Mkdir makes a directory
 
-#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6028:6087#L283)
+#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6068:6133#L286)
 ``` go
-func (c *Client) MkdirAll(path string, _ os.FileMode) error
+func (c *Client) MkdirAll(path string, _ os.FileMode) (err error)
 ```
 MkdirAll like mkdir -p, but for webdav
 
-#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6876:6926#L318)
+#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6992:7042#L328)
 ``` go
 func (c *Client) Read(path string) ([]byte, error)
 ```
@@ -349,13 +370,13 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error)
 ```
 ReadDir reads the contents of a remote directory
 
-#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7237:7300#L336)
+#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7353:7416#L346)
 ``` go
 func (c *Client) ReadStream(path string) (io.ReadCloser, error)
 ```
 ReadStream reads the stream for a given path
 
-#### <a name="Client.ReadStreamRange">func</a> (\*Client) [ReadStreamRange](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=8049:8139#L358)
+#### <a name="Client.ReadStreamRange">func</a> (\*Client) [ReadStreamRange](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=8165:8255#L368)
 ``` go
 func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadCloser, error)
 ```
@@ -380,7 +401,7 @@ func (c *Client) RemoveAll(path string) error
 ```
 RemoveAll removes remote files
 
-#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6536:6606#L308)
+#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6652:6722#L318)
 ``` go
 func (c *Client) Rename(oldpath, newpath string, overwrite bool) error
 ```
@@ -416,15 +437,15 @@ func (c *Client) Stat(path string) (os.FileInfo, error)
 ```
 Stat returns the file stats for a specified path
 
-#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9051:9120#L388)
+#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9260:9335#L402)
 ``` go
-func (c *Client) Write(path string, data []byte, _ os.FileMode) error
+func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error)
 ```
 Write writes data to a given path
 
-#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9476:9556#L411)
+#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9759:9845#L432)
 ``` go
-func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) error
+func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error)
 ```
 WriteStream writes a stream
 
@@ -433,6 +454,7 @@ WriteStream writes a stream
 type DigestAuth struct {
     // contains filtered or unexported fields
 }
+
 ```
 DigestAuth structure holds our credentials
 
@@ -465,6 +487,7 @@ User holds the DigestAuth username
 type File struct {
     // contains filtered or unexported fields
 }
+
 ```
 File is our structure for a given file
 
@@ -533,6 +556,7 @@ Sys ????
 type NoAuth struct {
     // contains filtered or unexported fields
 }
+
 ```
 NoAuth structure holds our credentials
 
@@ -559,6 +583,21 @@ Type identifies the authenticator
 func (n *NoAuth) User() string
 ```
 User returns the current user
+
+### <a name="StatusError">type</a> [StatusError](https://github.com/studio-b12/gowebdav/blob/master/errors.go?s=114:153#L10)
+``` go
+type StatusError struct {
+    Status int
+}
+
+```
+StatusError implements error and wraps
+an erroneous status code.
+
+#### <a name="StatusError.Error">func</a> (StatusError) [Error](https://github.com/studio-b12/gowebdav/blob/master/errors.go?s=155:191#L14)
+``` go
+func (se StatusError) Error() string
+```
 
 - - -
 Generated by [godoc2md](http://godoc.org/github.com/davecheney/godoc2md)
