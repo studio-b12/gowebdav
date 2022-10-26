@@ -111,3 +111,20 @@ func (l *limitedReadCloser) Read(buf []byte) (int, error) {
 func (l *limitedReadCloser) Close() error {
 	return l.rc.Close()
 }
+
+// FileWriter serves for returning file write when create a new file
+type FileWriter struct {
+	pw   *io.PipeWriter
+	done <-chan error
+}
+
+func (fw *FileWriter) Write(b []byte) (int, error) {
+	return fw.pw.Write(b)
+}
+
+func (fw *FileWriter) Close() error {
+	if err := fw.pw.Close(); err != nil {
+		return err
+	}
+	return <-fw.done
+}

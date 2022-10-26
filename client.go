@@ -2,6 +2,7 @@ package gowebdav
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -448,4 +449,23 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err 
 	default:
 		return newPathError("WriteStream", path, s)
 	}
+}
+
+func (c *Client) WriteWrCls(_ context.Context, path string, _ os.FileMode) (writer io.WriteCloser, err error) {
+	pr, pw := io.Pipe()
+	done := make(chan error, 1)
+
+	go func() {
+		defer pr.Close()
+
+		_, err := c.put(path, pr)
+		if err != nil {
+			done <- err
+			return
+		}
+		done <- nil
+	}()
+
+	tmpPw := FileWriter{pw, done}
+	return &tmpPw, nil
 }
