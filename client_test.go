@@ -5,12 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"golang.org/x/net/webdav"
 )
@@ -411,5 +413,33 @@ func TestWriteStream(t *testing.T) {
 
 	if info, err := fs.Stat(ctx, "/404/works.txt"); err != nil {
 		t.Fatalf("got: %v, want file info: %v", err, info)
+	}
+}
+
+func TestWriteStreamFromPipe(t *testing.T) {
+	cli, srv, fs, ctx := newServer(t)
+	defer srv.Close()
+
+	r, w := io.Pipe()
+
+	go func() {
+		defer w.Close()
+		fmt.Fprint(w, "foo")
+		time.Sleep(1 * time.Second)
+		fmt.Fprint(w, " ")
+		time.Sleep(1 * time.Second)
+		fmt.Fprint(w, "bar\n")
+	}()
+
+	if err := cli.WriteStream("/newfile.txt", r, 0660); err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	info, err := fs.Stat(ctx, "/newfile.txt")
+	if err != nil {
+		t.Fatalf("got: %v, want file info: %v", err, info)
+	}
+	if info.Size() != 8 {
+		t.Fatalf("got: %v, want file size: %d bytes", info.Size(), 8)
 	}
 }
