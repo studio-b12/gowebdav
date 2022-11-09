@@ -83,6 +83,11 @@ func (c *Client) SetTransport(transport http.RoundTripper) {
 	c.c.Transport = transport
 }
 
+// SetJar exposes the ability to set a cookie jar to the client.
+func (c *Client) SetJar(jar http.CookieJar) {
+	c.c.Jar = jar
+}
+
 // Connect connects to our dav server
 func (c *Client) Connect() error {
 	rs, err := c.options("/")
