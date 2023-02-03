@@ -55,6 +55,10 @@ func main() {
 
 	c := d.NewClient(*root, *user, *password)
 
+	if e := c.Connect(); e != nil {
+		panic(e)
+	}
+
 	cmd := getCmd(*method)
 
 	if e := cmd(c, flag.Arg(0), flag.Arg(1)); e != nil {
