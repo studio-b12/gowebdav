@@ -17,6 +17,12 @@ import (
 	"golang.org/x/net/webdav"
 )
 
+func noAuthHndl(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r)
+	}
+}
+
 func basicAuth(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if user, passwd, ok := r.BasicAuth(); ok {
@@ -55,20 +61,59 @@ func fillFs(t *testing.T, fs webdav.FileSystem) context.Context {
 }
 
 func newServer(t *testing.T) (*Client, *httptest.Server, webdav.FileSystem, context.Context) {
-	mux := http.NewServeMux()
-	fs := webdav.NewMemFS()
-	ctx := fillFs(t, fs)
-	mux.HandleFunc("/", basicAuth(&webdav.Handler{
-		FileSystem: fs,
-		LockSystem: webdav.NewMemLS(),
-	}))
-	srv := httptest.NewServer(mux)
+	return newAuthServer(t, basicAuth)
+}
+
+func newAuthServer(t *testing.T, auth func(h http.Handler) http.HandlerFunc) (*Client, *httptest.Server, webdav.FileSystem, context.Context) {
+	srv, fs, ctx := newAuthSrv(t, auth)
 	cli := NewClient(srv.URL, "user", "password")
 	return cli, srv, fs, ctx
 }
 
+func newAuthSrv(t *testing.T, auth func(h http.Handler) http.HandlerFunc) (*httptest.Server, webdav.FileSystem, context.Context) {
+	mux := http.NewServeMux()
+	fs := webdav.NewMemFS()
+	ctx := fillFs(t, fs)
+	mux.HandleFunc("/", auth(&webdav.Handler{
+		FileSystem: fs,
+		LockSystem: webdav.NewMemLS(),
+	}))
+	srv := httptest.NewServer(mux)
+	return srv, fs, ctx
+}
+
 func TestConnect(t *testing.T) {
 	cli, srv, _, _ := newServer(t)
+	defer srv.Close()
+	if err := cli.Connect(); err != nil {
+		t.Fatalf("got error: %v, want nil", err)
+	}
+
+	cli = NewClient(srv.URL, "no", "no")
+	if err := cli.Connect(); err == nil {
+		t.Fatalf("got nil, want error: %v", err)
+	}
+}
+
+func TestConnectMultiAuthII(t *testing.T) {
+	cli, srv, _, _ := newAuthServer(t, func(h http.Handler) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			if user, passwd, ok := r.BasicAuth(); ok {
+				if user == "user" && passwd == "password" {
+					h.ServeHTTP(w, r)
+					return
+				}
+
+				http.Error(w, "not authorized", 403)
+			} else {
+				w.Header().Add("WWW-Authenticate", `FooAuth`)
+				w.Header().Add("WWW-Authenticate", `BazAuth`)
+				w.Header().Add("WWW-Authenticate", `BarAuth`)
+				w.Header().Add("WWW-Authenticate", `Basic realm="x"`)
+				w.WriteHeader(401)
+			}
+		}
+	})
 	defer srv.Close()
 	if err := cli.Connect(); err != nil {
 		t.Fatalf("got error: %v, want nil", err)
@@ -119,6 +164,24 @@ func TestReadDirConcurrent(t *testing.T) {
 
 func TestRead(t *testing.T) {
 	cli, srv, _, _ := newServer(t)
+	defer srv.Close()
+
+	data, err := cli.Read("/hello.txt")
+	if err != nil || bytes.Compare(data, []byte("hello gowebdav\n")) != 0 {
+		t.Fatalf("got: %v, want data: %s", err, []byte("hello gowebdav\n"))
+	}
+
+	data, err = cli.Read("/404.txt")
+	if err == nil {
+		t.Fatalf("got: %v, want error: %v", data, err)
+	}
+	if !IsErrNotFound(err) {
+		t.Fatalf("got: %v, want 404 error", err)
+	}
+}
+
+func TestReadNoAuth(t *testing.T) {
+	cli, srv, _, _ := newAuthServer(t, noAuthHndl)
 	defer srv.Close()
 
 	data, err := cli.Read("/hello.txt")
