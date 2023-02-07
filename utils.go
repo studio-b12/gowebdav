@@ -111,3 +111,14 @@ func (l *limitedReadCloser) Read(buf []byte) (int, error) {
 func (l *limitedReadCloser) Close() error {
 	return l.rc.Close()
 }
+
+// closeInhibitor implements io.Closer and
+// wraps a Reader. When Close() is performed
+// on it, it will simply be silently rejected.
+type closeInhibitor struct {
+	io.Reader
+}
+
+func (ci closeInhibitor) Close() error {
+	return nil
+}
