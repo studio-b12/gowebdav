@@ -118,6 +118,10 @@ func NewAutoAuth(login string, secret string) Authorizer {
 		return NewDigestAuth(login, secret, rs)
 	})
 
+	az.AddAuthenticator("passport1.4", func(c *http.Client, rs *http.Response, path string) (auth Authenticator, err error) {
+		return NewPassportAuth(c, login, secret, rs.Request.URL.String(), &rs.Header)
+	})
+
 	return az
 }
 
