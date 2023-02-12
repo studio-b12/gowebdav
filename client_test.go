@@ -39,6 +39,54 @@ func basicAuth(h http.Handler) http.HandlerFunc {
 	}
 }
 
+func multipleAuth(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		notAuthed := false
+		if r.Header.Get("Authorization") == "" {
+			notAuthed = true
+		} else if user, passwd, ok := r.BasicAuth(); ok {
+			if user == "user" && passwd == "password" {
+				h.ServeHTTP(w, r)
+				return
+			}
+			notAuthed = true
+		} else if strings.HasPrefix(r.Header.Get("Authorization"), "Digest ") {
+			pairs := strings.TrimPrefix(r.Header.Get("Authorization"), "Digest ")
+			digestParts := make(map[string]string)
+			for _, pair := range strings.Split(pairs, ",") {
+				kv := strings.SplitN(strings.TrimSpace(pair), "=", 2)
+				key, value := kv[0], kv[1]
+				value = strings.Trim(value, `"`)
+				digestParts[key] = value
+			}
+			if digestParts["qop"] == "" {
+				digestParts["qop"] = "auth"
+			}
+
+			ha1 := getMD5(fmt.Sprint(digestParts["username"], ":", digestParts["realm"], ":", "digestPW"))
+			ha2 := getMD5(fmt.Sprint(r.Method, ":", digestParts["uri"]))
+			expected := getMD5(fmt.Sprint(ha1,
+				":", digestParts["nonce"],
+				":", digestParts["nc"],
+				":", digestParts["cnonce"],
+				":", digestParts["qop"],
+				":", ha2))
+
+			if expected == digestParts["response"] {
+				h.ServeHTTP(w, r)
+				return
+			}
+			notAuthed = true
+		}
+
+		if notAuthed {
+			w.Header().Add("WWW-Authenticate", `Digest realm="testrealm@host.com", qop="auth,auth-int",nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",opaque="5ccc069c403ebaf9f0171e9517f40e41"`)
+			w.Header().Add("WWW-Authenticate", `Basic realm="x"`)
+			w.WriteHeader(401)
+		}
+	}
+}
+
 func fillFs(t *testing.T, fs webdav.FileSystem) context.Context {
 	ctx := context.Background()
 	f, err := fs.OpenFile(ctx, "hello.txt", os.O_CREATE, 0644)
@@ -87,6 +135,24 @@ func TestConnect(t *testing.T) {
 	defer srv.Close()
 	if err := cli.Connect(); err != nil {
 		t.Fatalf("got error: %v, want nil", err)
+	}
+
+	cli = NewClient(srv.URL, "no", "no")
+	if err := cli.Connect(); err == nil {
+		t.Fatalf("got nil, want error: %v", err)
+	}
+}
+
+func TestConnectMultipleAuth(t *testing.T) {
+	cli, srv, _, _ := newAuthServer(t, multipleAuth)
+	defer srv.Close()
+	if err := cli.Connect(); err != nil {
+		t.Fatalf("got error: %v, want nil", err)
+	}
+
+	cli = NewClient(srv.URL, "digestUser", "digestPW")
+	if err := cli.Connect(); err != nil {
+		t.Fatalf("got nil, want error: %v", err)
 	}
 
 	cli = NewClient(srv.URL, "no", "no")
