@@ -108,10 +108,10 @@ type noAuth struct{}
 // First In, First Out.
 func NewAutoAuth(login string, secret string) Authorizer {
 	fmap := make([]authfactory, 0)
-	az := &authorizer{fmap, sync.Mutex{}, &nullAuth{}}
+	az := &authorizer{factories: fmap, defAuthMux: sync.Mutex{}, defAuth: &nullAuth{}}
 
 	az.AddAuthenticator("basic", func(c *http.Client, rs *http.Response, path string) (auth Authenticator, err error) {
-		return &BasicAuth{login, secret}, nil
+		return &BasicAuth{user: login, pw: secret}, nil
 	})
 
 	az.AddAuthenticator("digest", func(c *http.Client, rs *http.Response, path string) (auth Authenticator, err error) {
@@ -127,7 +127,7 @@ func NewAutoAuth(login string, secret string) Authorizer {
 // It offers the `NewAutoAuth` features.
 func NewEmptyAuth() Authorizer {
 	fmap := make([]authfactory, 0)
-	az := &authorizer{fmap, sync.Mutex{}, &nullAuth{}}
+	az := &authorizer{factories: fmap, defAuthMux: sync.Mutex{}, defAuth: &nullAuth{}}
 	return az
 }
 
@@ -142,7 +142,7 @@ func NewEmptyAuth() Authorizer {
 // without any synchronisation!!
 // Still applicable with `BasicAuth` within go routines.
 func NewPreemptiveAuth(auth Authenticator) Authorizer {
-	return &preemptiveAuthorizer{auth}
+	return &preemptiveAuthorizer{auth: auth}
 }
 
 // NewAuthenticator creates an Authenticator (Shim) per request
@@ -167,7 +167,7 @@ func (a *authorizer) NewAuthenticator(body io.Reader) (Authenticator, io.Reader)
 	defAuth := a.defAuth.Clone()
 	a.defAuthMux.Unlock()
 
-	return &authShim{a.factory, retryBuf, defAuth}, body
+	return &authShim{factory: a.factory, body: retryBuf, auth: defAuth}, body
 }
 
 // AddAuthenticator appends the AuthFactory to our factories.
@@ -206,7 +206,7 @@ func (a *authorizer) factory(c *http.Client, rs *http.Response, path string) (au
 		case 1:
 			auth = auths[0]
 		default:
-			auth = &negoAuth{auths, a.setDefaultAuthenticator}
+			auth = &negoAuth{auths: auths, setDefaultAuthenticator: a.setDefaultAuthenticator}
 		}
 	} else {
 		auth = &noAuth{}
@@ -324,7 +324,7 @@ func (n *negoAuth) Clone() Authenticator {
 	for i, e := range n.auths {
 		auths[i] = e.Clone()
 	}
-	return &negoAuth{auths, n.setDefaultAuthenticator}
+	return &negoAuth{auths: auths, setDefaultAuthenticator: n.setDefaultAuthenticator}
 }
 
 func (n *negoAuth) String() string {

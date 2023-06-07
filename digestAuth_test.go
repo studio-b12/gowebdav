@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewDigestAuth(t *testing.T) {
-	a := &DigestAuth{"user", "password", make(map[string]string, 0)}
+	a := &DigestAuth{user: "user", pw: "password", digestParts: make(map[string]string, 0)}
 
 	ex := "DigestAuth login: user"
 	if a.String() != ex {
@@ -24,7 +24,7 @@ func TestNewDigestAuth(t *testing.T) {
 }
 
 func TestDigestAuthAuthorize(t *testing.T) {
-	a := &DigestAuth{"user", "password", make(map[string]string, 0)}
+	a := &DigestAuth{user: "user", pw: "password", digestParts: make(map[string]string, 0)}
 	rq, _ := http.NewRequest("GET", "http://localhost/", nil)
 	a.Authorize(nil, rq, "/")
 	// TODO this is a very lazy test it cuts of cnonce

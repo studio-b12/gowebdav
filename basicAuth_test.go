@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewBasicAuth(t *testing.T) {
-	a := &BasicAuth{"user", "password"}
+	a := &BasicAuth{user: "user", pw: "password"}
 
 	ex := "BasicAuth login: user"
 	if a.String() != ex {
@@ -23,7 +23,7 @@ func TestNewBasicAuth(t *testing.T) {
 }
 
 func TestBasicAuthAuthorize(t *testing.T) {
-	a := &BasicAuth{"user", "password"}
+	a := &BasicAuth{user: "user", pw: "password"}
 	rq, _ := http.NewRequest("GET", "http://localhost/", nil)
 	a.Authorize(nil, rq, "/")
 	if rq.Header.Get("Authorization") != "Basic dXNlcjpwYXNzd29yZA==" {
@@ -32,7 +32,7 @@ func TestBasicAuthAuthorize(t *testing.T) {
 }
 
 func TestPreemtiveBasicAuth(t *testing.T) {
-	a := &BasicAuth{"user", "password"}
+	a := &BasicAuth{user: "user", pw: "password"}
 	auth := NewPreemptiveAuth(a)
 	n, b := auth.NewAuthenticator(nil)
 	if b != nil {
