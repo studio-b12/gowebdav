@@ -285,11 +285,17 @@ func (s *authShim) String() string {
 
 // Authorize authorizes the current request with the top most Authorizer
 func (n *negoAuth) Authorize(c *http.Client, rq *http.Request, path string) error {
+	if len(n.auths) == 0 {
+		return NewPathError("NoAuthenticator", path, 400)
+	}
 	return n.auths[0].Authorize(c, rq, path)
 }
 
 // Verify verifies the authentication and selects the next one based on the result
 func (n *negoAuth) Verify(c *http.Client, rs *http.Response, path string) (redo bool, err error) {
+	if len(n.auths) == 0 {
+		return false, NewPathError("NoAuthenticator", path, 400)
+	}
 	redo, err = n.auths[0].Verify(c, rs, path)
 	if err != nil {
 		if len(n.auths) > 1 {
