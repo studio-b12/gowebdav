@@ -42,7 +42,7 @@ func NewAuthClient(uri string, auth Authorizer) *Client {
 			return nil
 		},
 	}
-	return &Client{FixSlash(uri), make(http.Header), nil, c, auth}
+	return &Client{root: FixSlash(uri), headers: make(http.Header), interceptor: nil, c: c, auth: auth}
 }
 
 // SetHeader lets us set arbitrary headers for a given client
@@ -378,7 +378,7 @@ func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadClos
 		}
 
 		// return a io.ReadCloser that is limited to `length` bytes.
-		return &limitedReadCloser{rs.Body, int(length)}, nil
+		return &limitedReadCloser{rc: rs.Body, remaining: int(length)}, nil
 	}
 
 	rs.Body.Close()

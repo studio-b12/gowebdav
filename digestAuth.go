@@ -19,7 +19,7 @@ type DigestAuth struct {
 
 // NewDigestAuth creates a new instance of our Digest Authenticator
 func NewDigestAuth(login, secret string, rs *http.Response) (Authenticator, error) {
-	return &DigestAuth{login, secret, digestParts(rs)}, nil
+	return &DigestAuth{user: login, pw: secret, digestParts: digestParts(rs)}, nil
 }
 
 // Authorize the current request
@@ -51,7 +51,7 @@ func (d *DigestAuth) Clone() Authenticator {
 	for k, v := range d.digestParts {
 		parts[k] = v
 	}
-	return &DigestAuth{d.user, d.pw, parts}
+	return &DigestAuth{user: d.user, pw: d.pw, digestParts: parts}
 }
 
 // String toString
