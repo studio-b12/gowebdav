@@ -399,7 +399,7 @@ func (b *preemptiveAuthorizer) NewAuthenticator(body io.Reader) (Authenticator, 
 	return b.auth.Clone(), body
 }
 
-// AddAuthenticator A preemptive authorizer may only have a single authentication method
+// AddAuthenticator Will PANIC because it may only have a single authentication method
 func (b *preemptiveAuthorizer) AddAuthenticator(key string, fn AuthFactory) {
 	panic("You're funny! A preemptive authorizer may only have a single authentication method")
 }
