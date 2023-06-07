@@ -15,7 +15,12 @@ type AuthFactory func(c *http.Client, rs *http.Response, path string) (auth Auth
 // Authorizer our Authenticator factory which creates an
 // `Authenticator` per action/request.
 type Authorizer interface {
+	// Creates a new Authenticator Shim per request.
+	// It may track request related states and perform payload buffering
+	// for authentication round trips.
+	// The underlying Authenticator will perform the real authentication.
 	NewAuthenticator(body io.Reader) (Authenticator, io.Reader)
+	// Registers a new Authenticator factory to a key.
 	AddAuthenticator(key string, fn AuthFactory)
 }
 
@@ -28,7 +33,7 @@ type Authorizer interface {
 // This makes it easy to encapsulate and control complex
 // authentication challenges.
 //
-// Some authentication flows causing authentication roundtrips,
+// Some authentication flows causing authentication round trips,
 // which can be archived by returning the `redo` of the Verify
 // method. `True` restarts the authentication process for the
 // current action: A new `Request` is spawned, which must be
@@ -49,8 +54,13 @@ type Authorizer interface {
 // To store a shared session state the `Clone` method **must**
 // return a new instance, initialized with the shared state.
 type Authenticator interface {
+	// Authorizes a request. Usually by adding some authorization headers.
 	Authorize(c *http.Client, rq *http.Request, path string) error
+	// Verifies the response if the authorization was successful.
+	// May trigger some round trips to pass the authentication.
+	// May also trigger a new Authenticator negotiation by returning `ErrAuthChenged`
 	Verify(c *http.Client, rs *http.Response, path string) (redo bool, err error)
+	// Creates a copy of the underlying Authenticator.
 	Clone() Authenticator
 	io.Closer
 }
