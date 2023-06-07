@@ -136,7 +136,7 @@ func NewEmptyAuth() Authorizer {
 // for every request regardless of any `Www-Authenticate` header.
 //
 // It may only have one authentication method,
-// so calling `AddAuthenticator` will panic!
+// so calling `AddAuthenticator` **will panic**!
 //
 // Look out!! This offers the skinniest and slickest implementation
 // without any synchronisation!!
@@ -273,9 +273,10 @@ func (s *authShim) Close() error {
 	return nil
 }
 
-// Do not Clone the shim, it ends badly. In any case for you.
+// It's not intend to Clone the shim
+// therefore it returns a noAuth instance
 func (s *authShim) Clone() Authenticator {
-	panic("Do not Clone the shim, it ends badly. In any case for you.")
+	return &noAuth{}
 }
 
 // String toString
