@@ -43,12 +43,10 @@ func (c *Client) req(method, path string, body io.Reader, intercept func(*http.R
 		}
 
 		if redo, err = auth.Verify(c.c, rs, path); err != nil {
-			io.Copy(io.Discard, rs.Body)
 			rs.Body.Close()
 			return nil, err
 		}
 		if redo {
-			io.Copy(io.Discard, rs.Body)
 			rs.Body.Close()
 			if body, err = r.GetBody(); err != nil {
 				return nil, err
