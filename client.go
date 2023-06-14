@@ -215,7 +215,7 @@ func (c *Client) Stat(path string) (os.FileInfo, error) {
 					f.path += "/"
 				}
 				f.size = 0
-				f.modified = time.Unix(0, 0)
+				f.modified = parseModified(&p.Modified)
 				f.isdir = true
 			} else {
 				f.size = parseInt64(&p.Size)
