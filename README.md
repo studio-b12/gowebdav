@@ -5,7 +5,7 @@
 [![GoDoc](https://godoc.org/github.com/studio-b12/gowebdav?status.svg)](https://godoc.org/github.com/studio-b12/gowebdav)
 [![Go Report Card](https://goreportcard.com/badge/github.com/studio-b12/gowebdav)](https://goreportcard.com/report/github.com/studio-b12/gowebdav)
 
-A pure Golang WebDAV client library that comes with a reference implementation.
+A pure Golang WebDAV client library that comes with a [reference implementation](https://github.com/studio-b12/gowebdav/tree/master/cmd/gowebdav).
 
 ## Features at a glance
 
@@ -23,12 +23,13 @@ Our `gowebdav` library allows to perform following actions on the remote WebDAV 
 It also provides an [authentication API](#type-authenticator) that makes it easy to encapsulate and control complex authentication challenges.
 The default implementation negotiates the algorithm based on the user's preferences and the methods offered by the remote server.
 
-Out-of-box support for:
+Out-of-box authentication support for:
 
 * [BasicAuth](https://en.wikipedia.org/wiki/Basic_access_authentication)
 * [DigestAuth](https://en.wikipedia.org/wiki/Digest_access_authentication)
-* [Kerberos comming](https://github.com/studio-b12/gowebdav/pull/71#issuecomment-1416465334)
-
+* [MS-PASS](https://github.com/studio-b12/gowebdav/pull/70#issuecomment-1421713726)
+* [WIP Kerberos](https://github.com/studio-b12/gowebdav/pull/71#issuecomment-1416465334)
+* [WIP Bearer Token](https://github.com/studio-b12/gowebdav/issues/61)
 
 ## Usage
 
@@ -189,6 +190,7 @@ included.
 * [type AuthFactory](#AuthFactory)
 * [type Authenticator](#Authenticator)
   * [func NewDigestAuth(login, secret string, rs *http.Response) (Authenticator, error)](#NewDigestAuth)
+  * [func NewPassportAuth(c *http.Client, user, pw, partnerURL string, header *http.Header) (Authenticator, error)](#NewPassportAuth)
 * [type Authorizer](#Authorizer)
   * [func NewAutoAuth(login string, secret string) Authorizer](#NewAutoAuth)
   * [func NewEmptyAuth() Authorizer](#NewEmptyAuth)
@@ -238,6 +240,12 @@ included.
   * [func (f File) Size() int64](#File.Size)
   * [func (f File) String() string](#File.String)
   * [func (f File) Sys() interface{}](#File.Sys)
+* [type PassportAuth](#PassportAuth)
+  * [func (p *PassportAuth) Authorize(c *http.Client, rq *http.Request, path string) error](#PassportAuth.Authorize)
+  * [func (p *PassportAuth) Clone() Authenticator](#PassportAuth.Clone)
+  * [func (p *PassportAuth) Close() error](#PassportAuth.Close)
+  * [func (p *PassportAuth) String() string](#PassportAuth.String)
+  * [func (p *PassportAuth) Verify(c *http.Client, rs *http.Response, path string) (redo bool, err error)](#PassportAuth.Verify)
 * [type StatusError](#StatusError)
   * [func (se StatusError) Error() string](#StatusError.Error)
 
@@ -245,7 +253,7 @@ included.
 * [PathEscape](#example_PathEscape)
 
 ##### <a name="pkg-files">Package files</a>
-[auth.go](https://github.com/studio-b12/gowebdav/blob/master/auth.go) [basicAuth.go](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go) [client.go](https://github.com/studio-b12/gowebdav/blob/master/client.go) [digestAuth.go](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go) [doc.go](https://github.com/studio-b12/gowebdav/blob/master/doc.go) [errors.go](https://github.com/studio-b12/gowebdav/blob/master/errors.go) [file.go](https://github.com/studio-b12/gowebdav/blob/master/file.go) [netrc.go](https://github.com/studio-b12/gowebdav/blob/master/netrc.go) [requests.go](https://github.com/studio-b12/gowebdav/blob/master/requests.go) [utils.go](https://github.com/studio-b12/gowebdav/blob/master/utils.go) 
+[auth.go](https://github.com/studio-b12/gowebdav/blob/master/auth.go) [basicAuth.go](https://github.com/studio-b12/gowebdav/blob/master/basicAuth.go) [client.go](https://github.com/studio-b12/gowebdav/blob/master/client.go) [digestAuth.go](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go) [doc.go](https://github.com/studio-b12/gowebdav/blob/master/doc.go) [errors.go](https://github.com/studio-b12/gowebdav/blob/master/errors.go) [file.go](https://github.com/studio-b12/gowebdav/blob/master/file.go) [netrc.go](https://github.com/studio-b12/gowebdav/blob/master/netrc.go) [passportAuth.go](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go) [requests.go](https://github.com/studio-b12/gowebdav/blob/master/requests.go) [utils.go](https://github.com/studio-b12/gowebdav/blob/master/utils.go) 
 
 ### <a name="pkg-constants">Constants</a>
 ``` go
@@ -382,6 +390,13 @@ func NewDigestAuth(login, secret string, rs *http.Response) (Authenticator, erro
 ```
 NewDigestAuth creates a new instance of our Digest Authenticator
 
+#### <a name="NewPassportAuth">func</a> [NewPassportAuth](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go?s=386:495#L21)
+``` go
+func NewPassportAuth(c *http.Client, user, pw, partnerURL string, header *http.Header) (Authenticator, error)
+```
+constructor for PassportAuth creates a new PassportAuth object and
+automatically authenticates against the given partnerURL
+
 ### <a name="Authorizer">type</a> [Authorizer](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=349:764#L17)
 ``` go
 type Authorizer interface {
@@ -407,7 +422,7 @@ based on the order of the registered Authenticators
 and the remotely offered authentication methods.
 First In, First Out.
 
-#### <a name="NewEmptyAuth">func</a> [NewEmptyAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=4486:4516#L128)
+#### <a name="NewEmptyAuth">func</a> [NewEmptyAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=4694:4724#L132)
 ``` go
 func NewEmptyAuth() Authorizer
 ```
@@ -416,7 +431,7 @@ The order of adding the Authenticator matters.
 First In, First Out.
 It offers the `NewAutoAuth` features.
 
-#### <a name="NewPreemptiveAuth">func</a> [NewPreemptiveAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=5092:5145#L144)
+#### <a name="NewPreemptiveAuth">func</a> [NewPreemptiveAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=5300:5353#L148)
 ``` go
 func NewPreemptiveAuth(auth Authenticator) Authorizer
 ```
@@ -497,25 +512,25 @@ func (c *Client) Connect() error
 ```
 Connect connects to our dav server
 
-#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6804:6872#L310)
+#### <a name="Client.Copy">func</a> (\*Client) [Copy](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6815:6883#L310)
 ``` go
 func (c *Client) Copy(oldpath, newpath string, overwrite bool) error
 ```
 Copy copies a file from A to B
 
-#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5779:5841#L259)
+#### <a name="Client.Mkdir">func</a> (\*Client) [Mkdir](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5790:5852#L259)
 ``` go
 func (c *Client) Mkdir(path string, _ os.FileMode) (err error)
 ```
 Mkdir makes a directory
 
-#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6054:6119#L273)
+#### <a name="Client.MkdirAll">func</a> (\*Client) [MkdirAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6065:6130#L273)
 ``` go
 func (c *Client) MkdirAll(path string, _ os.FileMode) (err error)
 ```
 MkdirAll like mkdir -p, but for webdav
 
-#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6978:7028#L315)
+#### <a name="Client.Read">func</a> (\*Client) [Read](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6989:7039#L315)
 ``` go
 func (c *Client) Read(path string) ([]byte, error)
 ```
@@ -527,13 +542,13 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error)
 ```
 ReadDir reads the contents of a remote directory
 
-#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7339:7402#L333)
+#### <a name="Client.ReadStream">func</a> (\*Client) [ReadStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=7350:7413#L333)
 ``` go
 func (c *Client) ReadStream(path string) (io.ReadCloser, error)
 ```
 ReadStream reads the stream for a given path
 
-#### <a name="Client.ReadStreamRange">func</a> (\*Client) [ReadStreamRange](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=8151:8241#L355)
+#### <a name="Client.ReadStreamRange">func</a> (\*Client) [ReadStreamRange](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=8162:8252#L355)
 ``` go
 func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadCloser, error)
 ```
@@ -546,19 +561,19 @@ If the server does not support partial content requests and returns full content
 this function will emulate the behavior by skipping `offset` bytes and limiting the result
 to `length`.
 
-#### <a name="Client.Remove">func</a> (\*Client) [Remove](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5285:5327#L236)
+#### <a name="Client.Remove">func</a> (\*Client) [Remove](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5296:5338#L236)
 ``` go
 func (c *Client) Remove(path string) error
 ```
 Remove removes a remote file
 
-#### <a name="Client.RemoveAll">func</a> (\*Client) [RemoveAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5393:5438#L241)
+#### <a name="Client.RemoveAll">func</a> (\*Client) [RemoveAll](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=5404:5449#L241)
 ``` go
 func (c *Client) RemoveAll(path string) error
 ```
 RemoveAll removes remote files
 
-#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6638:6708#L305)
+#### <a name="Client.Rename">func</a> (\*Client) [Rename](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=6649:6719#L305)
 ``` go
 func (c *Client) Rename(oldpath, newpath string, overwrite bool) error
 ```
@@ -600,13 +615,13 @@ func (c *Client) Stat(path string) (os.FileInfo, error)
 ```
 Stat returns the file stats for a specified path
 
-#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9261:9336#L389)
+#### <a name="Client.Write">func</a> (\*Client) [Write](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9272:9347#L389)
 ``` go
 func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error)
 ```
 Write writes data to a given path
 
-#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9760:9846#L419)
+#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9771:9857#L419)
 ``` go
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error)
 ```
@@ -719,6 +734,45 @@ String lets us see file information
 func (f File) Sys() interface{}
 ```
 Sys ????
+
+### <a name="PassportAuth">type</a> [PassportAuth](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go?s=125:254#L12)
+``` go
+type PassportAuth struct {
+    // contains filtered or unexported fields
+}
+
+```
+PassportAuth structure holds our credentials
+
+#### <a name="PassportAuth.Authorize">func</a> (\*PassportAuth) [Authorize](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go?s=690:775#L32)
+``` go
+func (p *PassportAuth) Authorize(c *http.Client, rq *http.Request, path string) error
+```
+Authorize the current request
+
+#### <a name="PassportAuth.Clone">func</a> (\*PassportAuth) [Clone](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go?s=1701:1745#L69)
+``` go
+func (p *PassportAuth) Clone() Authenticator
+```
+Clone creates a Copy of itself
+
+#### <a name="PassportAuth.Close">func</a> (\*PassportAuth) [Close](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go?s=1613:1649#L64)
+``` go
+func (p *PassportAuth) Close() error
+```
+Close cleans up all resources
+
+#### <a name="PassportAuth.String">func</a> (\*PassportAuth) [String](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go?s=2048:2086#L83)
+``` go
+func (p *PassportAuth) String() string
+```
+String toString
+
+#### <a name="PassportAuth.Verify">func</a> (\*PassportAuth) [Verify](https://github.com/studio-b12/gowebdav/blob/master/passportAuth.go?s=1075:1175#L46)
+``` go
+func (p *PassportAuth) Verify(c *http.Client, rs *http.Response, path string) (redo bool, err error)
+```
+Verify verifies if the authentication is good
 
 ### <a name="StatusError">type</a> [StatusError](https://github.com/studio-b12/gowebdav/blob/master/errors.go?s=499:538#L18)
 ``` go
