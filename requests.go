@@ -131,7 +131,7 @@ func (c *Client) doCopyMove(
 	return
 }
 
-func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool) (err error) {
+func (c *Client) copymove(method string, oldpath string, newpath string, overwrite bool, doParents ...bool) (err error) {
 	s, data, err := c.doCopyMove(method, oldpath, newpath, overwrite)
 	if err != nil {
 		return
@@ -149,7 +149,7 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 		log.Printf("TODO handle %s - %s multistatus result %s\n", method, oldpath, String(data))
 
 	case 409:
-		err := c.createParentCollection(newpath)
+		err := c.createParentCollection(newpath, c.parseParentOption(doParents...))
 		if err != nil {
 			return err
 		}
@@ -171,7 +171,10 @@ func (c *Client) put(path string, stream io.Reader) (status int, err error) {
 	return
 }
 
-func (c *Client) createParentCollection(itemPath string) (err error) {
+func (c *Client) createParentCollection(itemPath string, doParents ...bool) (err error) {
+	if len(doParents) > 0 && !doParents[0] {
+		return nil
+	}
 	parentPath := path.Dir(itemPath)
 	if parentPath == "." || parentPath == "/" {
 		return nil

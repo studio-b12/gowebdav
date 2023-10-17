@@ -386,7 +386,7 @@ func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadClos
 }
 
 // Write writes data to a given path
-func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
+func (c *Client) Write(path string, data []byte, _ os.FileMode, doParents ...bool) (err error) {
 	s, err := c.put(path, bytes.NewReader(data))
 	if err != nil {
 		return
@@ -398,7 +398,7 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
 		return nil
 
 	case 404, 409:
-		err = c.createParentCollection(path)
+		err = c.createParentCollection(path, c.parseParentOption(doParents...))
 		if err != nil {
 			return
 		}
@@ -416,23 +416,27 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
 }
 
 // WriteStream writes a stream
-func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error) {
-
-	err = c.createParentCollection(path)
-	if err != nil {
+func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode, doParents ...bool) (err error) {
+	if err := c.createParentCollection(path, c.parseParentOption(doParents...)); err != nil {
 		return err
 	}
-
 	s, err := c.put(path, stream)
 	if err != nil {
 		return err
 	}
-
 	switch s {
 	case 200, 201, 204:
 		return nil
-
 	default:
 		return NewPathError("WriteStream", path, s)
 	}
+}
+
+// parseParentOption parses variadic bool argument. If present, first element is returned.
+func (c *Client) parseParentOption(b ...bool) bool {
+	create := true
+	if len(b) > 0 {
+		create = b[0]
+	}
+	return create
 }
