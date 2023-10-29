@@ -435,10 +435,14 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err 
 			return err
 		}
 	} else {
-		contentLength, err = io.Copy(io.Discard, stream)
+		buffer := bytes.NewBuffer(make([]byte, 0, 1024 * 1024 /* 1MB */))
+		
+		contentLength, err = io.Copy(buffer, stream)
 		if err != nil {
 			return err
 		}
+
+		stream = buffer
 	}
 
 	s, err := c.put(path, stream, contentLength)
