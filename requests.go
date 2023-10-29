@@ -160,8 +160,10 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 	return NewPathError(method, oldpath, s)
 }
 
-func (c *Client) put(path string, stream io.Reader) (status int, err error) {
-	rs, err := c.req("PUT", path, stream, nil)
+func (c *Client) put(path string, stream io.Reader, contentLength int64) (status int, err error) {
+	rs, err := c.req("PUT", path, stream, func(r *http.Request) {
+		r.ContentLength = contentLength
+	})
 	if err != nil {
 		return
 	}

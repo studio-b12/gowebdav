@@ -387,7 +387,7 @@ func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadClos
 
 // Write writes data to a given path
 func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
-	s, err := c.put(path, bytes.NewReader(data))
+	s, err := c.put(path, bytes.NewReader(data), int64(len(data)))
 	if err != nil {
 		return
 	}
@@ -403,7 +403,7 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
 			return
 		}
 
-		s, err = c.put(path, bytes.NewReader(data))
+		s, err = c.put(path, bytes.NewReader(data), int64(len(data)))
 		if err != nil {
 			return
 		}
@@ -423,7 +423,25 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err 
 		return err
 	}
 
-	s, err := c.put(path, stream)
+	contentLength := int64(0)
+	if seeker, ok := stream.(io.Seeker); ok {
+		contentLength, err = seeker.Seek(0, io.SeekEnd)
+		if err != nil {
+			return err
+		}
+
+		_, err = seeker.Seek(0, io.SeekStart)
+		if err != nil {
+			return err
+		}
+	} else {
+		contentLength, err = io.Copy(io.Discard, stream)
+		if err != nil {
+			return err
+		}
+	}
+
+	s, err := c.put(path, stream, contentLength)
 	if err != nil {
 		return err
 	}
