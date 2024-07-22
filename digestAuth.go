@@ -35,7 +35,12 @@ func (d *DigestAuth) Authorize(c *http.Client, rq *http.Request, path string) er
 // Verify checks for authentication issues and may trigger a re-authentication
 func (d *DigestAuth) Verify(c *http.Client, rs *http.Response, path string) (redo bool, err error) {
 	if rs.StatusCode == 401 {
-		err = NewPathError("Authorize", path, rs.StatusCode)
+		if isStaled(rs) {
+			redo = true
+			err = ErrAuthChanged
+		} else {
+			err = NewPathError("Authorize", path, rs.StatusCode)
+		}
 	}
 	return
 }
@@ -161,4 +166,18 @@ func getDigestAuthorization(digestParts map[string]string) string {
 	}
 
 	return authorization
+}
+
+func isStaled(rs *http.Response) bool {
+	header := rs.Header.Get("Www-Authenticate")
+	if len(header) > 0 {
+		directives := strings.Split(header, ",")
+		for i := range directives {
+			key, value, _ := strings.Cut(strings.Trim(directives[i], " "), "=")
+			if strings.EqualFold(key, "stale") {
+				return strings.EqualFold(value, "true")
+			}
+		}
+	}
+	return false
 }
