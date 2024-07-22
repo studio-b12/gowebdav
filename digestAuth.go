@@ -173,8 +173,8 @@ func isStaled(rs *http.Response) bool {
 	if len(header) > 0 {
 		directives := strings.Split(header, ",")
 		for i := range directives {
-			key, value, _ := strings.Cut(strings.Trim(directives[i], " "), "=")
-			if strings.EqualFold(key, "stale") {
+			name, value, _ := strings.Cut(strings.Trim(directives[i], " "), "=")
+			if strings.EqualFold(name, "stale") {
 				return strings.EqualFold(value, "true")
 			}
 		}
