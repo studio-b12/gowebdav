@@ -543,6 +543,22 @@ func TestWriteStream(t *testing.T) {
 	if info, err := fs.Stat(ctx, "/404/works.txt"); err != nil {
 		t.Fatalf("got: %v, want file info: %v", err, info)
 	}
+
+	if err := cli.WriteStream("/test/newFile.txt", strings.NewReader("foo bar\n"), 0660, false); err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	if info, err := fs.Stat(ctx, "/test/newFile.txt"); err != nil {
+		t.Fatalf("got: %v, want file info: %v", err, info)
+	}
+
+	if err := cli.WriteStream("/test/fld1/fld2/newFile.txt", strings.NewReader("foo bar\n"), 0660, true); err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	if info, err := fs.Stat(ctx, "/test/fld1/fld2/newFile.txt"); err != nil {
+		t.Fatalf("got: %v, want file info: %v", err, info)
+	}
 }
 
 func TestWriteStreamFromPipe(t *testing.T) {
@@ -570,5 +586,20 @@ func TestWriteStreamFromPipe(t *testing.T) {
 	}
 	if info.Size() != 8 {
 		t.Fatalf("got: %v, want file size: %d bytes", info.Size(), 8)
+	}
+}
+
+func TestClient_createParentCollection(t *testing.T) {
+	cli, srv, _, _ := newServer(t)
+	defer srv.Close()
+
+	err := cli.createParentCollection("/test/folder1/folder2/")
+	if err != nil {
+		t.Fatalf("got: %v, want no err", err)
+	}
+
+	err = cli.createParentCollection("/some/folder/", false)
+	if err != nil {
+		t.Fatalf("got: %v, want no err", err)
 	}
 }
