@@ -340,7 +340,7 @@ type AuthFactory func(c *http.Client, rs *http.Response, path string) (auth Auth
 ```
 AuthFactory prototype function to create a new Authenticator
 
-### <a name="Authenticator">type</a> [Authenticator](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=2155:2695#L56)
+### <a name="Authenticator">type</a> [Authenticator](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=2156:2696#L56)
 ``` go
 type Authenticator interface {
     // Authorizes a request. Usually by adding some authorization headers.
@@ -354,7 +354,7 @@ type Authenticator interface {
     io.Closer
 }
 ```
-A Authenticator implements a specific way to authorize requests.
+An Authenticator implements a specific way to authorize requests.
 Each request is bound to a separate Authenticator instance.
 
 The authentication flow itself is broken down into `Authorize`
@@ -412,7 +412,7 @@ type Authorizer interface {
 Authorizer our Authenticator factory which creates an
 `Authenticator` per action/request.
 
-#### <a name="NewAutoAuth">func</a> [NewAutoAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=3789:3845#L109)
+#### <a name="NewAutoAuth">func</a> [NewAutoAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=3790:3846#L109)
 ``` go
 func NewAutoAuth(login string, secret string) Authorizer
 ```
@@ -422,7 +422,7 @@ based on the order of the registered Authenticators
 and the remotely offered authentication methods.
 First In, First Out.
 
-#### <a name="NewEmptyAuth">func</a> [NewEmptyAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=4694:4724#L132)
+#### <a name="NewEmptyAuth">func</a> [NewEmptyAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=4695:4725#L132)
 ``` go
 func NewEmptyAuth() Authorizer
 ```
@@ -431,7 +431,7 @@ The order of adding the Authenticator matters.
 First In, First Out.
 It offers the `NewAutoAuth` features.
 
-#### <a name="NewPreemptiveAuth">func</a> [NewPreemptiveAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=5300:5353#L148)
+#### <a name="NewPreemptiveAuth">func</a> [NewPreemptiveAuth](https://github.com/studio-b12/gowebdav/blob/master/auth.go?s=5301:5354#L148)
 ``` go
 func NewPreemptiveAuth(auth Authenticator) Authorizer
 ```

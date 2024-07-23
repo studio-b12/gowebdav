@@ -24,7 +24,7 @@ type Authorizer interface {
 	AddAuthenticator(key string, fn AuthFactory)
 }
 
-// A Authenticator implements a specific way to authorize requests.
+// An Authenticator implements a specific way to authorize requests.
 // Each request is bound to a separate Authenticator instance.
 //
 // The authentication flow itself is broken down into `Authorize`
