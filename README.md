@@ -642,19 +642,19 @@ func (d *DigestAuth) Authorize(c *http.Client, rq *http.Request, path string) er
 ```
 Authorize the current request
 
-#### <a name="DigestAuth.Clone">func</a> (\*DigestAuth) [Clone](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=1228:1270#L49)
+#### <a name="DigestAuth.Clone">func</a> (\*DigestAuth) [Clone](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=1303:1345#L54)
 ``` go
 func (d *DigestAuth) Clone() Authenticator
 ```
 Clone creates a copy of itself
 
-#### <a name="DigestAuth.Close">func</a> (\*DigestAuth) [Close](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=1142:1176#L44)
+#### <a name="DigestAuth.Close">func</a> (\*DigestAuth) [Close](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=1217:1251#L49)
 ``` go
 func (d *DigestAuth) Close() error
 ```
 Close cleans up all resources
 
-#### <a name="DigestAuth.String">func</a> (\*DigestAuth) [String](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=1466:1502#L58)
+#### <a name="DigestAuth.String">func</a> (\*DigestAuth) [String](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=1541:1577#L63)
 ``` go
 func (d *DigestAuth) String() string
 ```
