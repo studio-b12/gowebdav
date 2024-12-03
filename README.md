@@ -161,6 +161,10 @@ All contributing are welcome. If you have any suggestions or find some bug - ple
 
 ## License
 This library is distributed under the BSD 3-Clause license found in the [LICENSE](https://github.com/studio-b12/gowebdav/blob/master/LICENSE) file.
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/studio-b12/gowebdav.svg?variant=adaptive)](https://starchart.cc/studio-b12/gowebdav)
+
 ## API
 
 `import "github.com/studio-b12/gowebdav"`
