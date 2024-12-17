@@ -379,6 +379,7 @@ func TestReadStreamRangeUnkownLength(t *testing.T) {
 func TestStat(t *testing.T) {
 	cli, srv, _, _ := newServer(t)
 	defer srv.Close()
+	wantErrCode := 404
 
 	info, err := cli.Stat("/hello.txt")
 	if err != nil {
@@ -394,6 +395,9 @@ func TestStat(t *testing.T) {
 	}
 	if !IsErrNotFound(err) {
 		t.Fatalf("got: %v, want 404 error", err)
+	}
+	if GetStatusCode(err) != wantErrCode {
+		t.Fatalf("got: %v, want %d", err, wantErrCode)
 	}
 }
 
