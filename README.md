@@ -625,7 +625,7 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error)
 ```
 Write writes data to a given path
 
-#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9771:9857#L419)
+#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9807:9893#L419)
 ``` go
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error)
 ```
