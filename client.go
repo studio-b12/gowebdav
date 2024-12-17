@@ -435,8 +435,8 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err 
 			return err
 		}
 	} else {
-		buffer := bytes.NewBuffer(make([]byte, 0, 1024 * 1024 /* 1MB */))
-		
+		buffer := bytes.NewBuffer(make([]byte, 0, 1024*1024 /* 1MB */))
+
 		contentLength, err = io.Copy(buffer, stream)
 		if err != nil {
 			return err
