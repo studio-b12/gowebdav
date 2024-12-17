@@ -3,6 +3,7 @@ package gowebdav
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
@@ -639,5 +640,20 @@ func TestWriteStreamToServerAcquireContentLength(t *testing.T) {
 
 	if err := cli.WriteStream("/newfile.txt", strings.NewReader("foo bar\n"), 0660); err != nil {
 		t.Fatalf("got: %v, want nil", err)
+	}
+
+	lf := make([]byte, 10*1024*1024)
+	rand.Read(lf)
+	if err := cli.WriteStream("/largefile.bin", bytes.NewBuffer(lf), 0660); err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	lf2, err := cli.Read("/largefile.bin")
+	if err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	if !bytes.Equal(lf, lf2) {
+		t.Fatalf("%s largefile.bin doesn't match", t.Name())
 	}
 }
