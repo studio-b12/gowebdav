@@ -111,3 +111,29 @@ func (l *limitedReadCloser) Read(buf []byte) (int, error) {
 func (l *limitedReadCloser) Close() error {
 	return l.rc.Close()
 }
+
+func GetContentLength(reader io.Reader) (int64, error) {
+	contentLength := int64(0)
+	switch reader := reader.(type) {
+	case *bytes.Buffer:
+		contentLength = int64(reader.Len())
+	case *bytes.Reader:
+		contentLength = int64(reader.Len())
+	case *strings.Reader:
+		contentLength = int64(reader.Len())
+	case io.Seeker:
+		pos, err := reader.Seek(0, io.SeekEnd)
+		if err != nil {
+			return 0, err
+		}
+
+		_, err = reader.Seek(0, io.SeekStart)
+		if err != nil {
+			return 0, err
+		}
+
+		contentLength = pos
+	}
+
+	return contentLength, nil
+}

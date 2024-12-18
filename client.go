@@ -423,26 +423,9 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err 
 		return err
 	}
 
-	contentLength := int64(0)
-	if seeker, ok := stream.(io.Seeker); ok {
-		contentLength, err = seeker.Seek(0, io.SeekEnd)
-		if err != nil {
-			return err
-		}
-
-		_, err = seeker.Seek(0, io.SeekStart)
-		if err != nil {
-			return err
-		}
-	} else {
-		buffer := bytes.NewBuffer(make([]byte, 0, 1024*1024 /* 1MB */))
-
-		contentLength, err = io.Copy(buffer, stream)
-		if err != nil {
-			return err
-		}
-
-		stream = buffer
+	contentLength, err := GetContentLength(stream)
+	if err != nil {
+		return err
 	}
 
 	s, err := c.put(path, stream, contentLength)
