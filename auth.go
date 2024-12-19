@@ -159,9 +159,14 @@ func (a *authorizer) NewAuthenticator(body io.Reader) (Authenticator, io.Reader)
 		// cursor to the start.
 		// Otherwise, copy the stream into a buffer while uploading
 		// and use the buffers content on retry.
-		if _, ok := retryBuf.(io.Seeker); ok {
+		switch body.(type) {
+		case io.Seeker:
 			body = io.NopCloser(body)
-		} else {
+		case *bytes.Buffer:
+			buffer := &bytes.Buffer{}
+			*buffer = *body.(*bytes.Buffer)
+			retryBuf = buffer
+		default:
 			buff := &bytes.Buffer{}
 			retryBuf = buff
 			body = io.TeeReader(body, buff)
