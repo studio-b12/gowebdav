@@ -423,7 +423,7 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err 
 		return err
 	}
 
-	contentLength, err := GetContentLength(stream)
+	contentLength, err := getContentLength(stream)
 	if err != nil {
 		return err
 	}
