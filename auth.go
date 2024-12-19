@@ -157,6 +157,8 @@ func (a *authorizer) NewAuthenticator(body io.Reader) (Authenticator, io.Reader)
 		// from the passed body stream.
 		// When body is seekable, use seek to reset the streams
 		// cursor to the start.
+		// If the body is a bytes.Buffer, create a new buffer and perform a shallow copy
+		// of the original buffer's content to the new one. Use the new buffer for retries.
 		// Otherwise, copy the stream into a buffer while uploading
 		// and use the buffers content on retry.
 		switch body.(type) {
