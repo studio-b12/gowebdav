@@ -657,3 +657,72 @@ func TestWriteStreamToServerAcquireContentLength(t *testing.T) {
 		t.Fatalf("%s largefile.bin doesn't match", t.Name())
 	}
 }
+
+func TestWriteStreamWithLength(t *testing.T) {
+	cli, srv, fs, ctx := newServer(t)
+	defer srv.Close()
+
+	content := "foo bar\n"
+	if err := cli.WriteStreamWithLength("/newfile.txt", strings.NewReader(content), int64(len(content)), 0660); err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	info, err := fs.Stat(ctx, "/newfile.txt")
+	if err != nil {
+		t.Fatalf("got: %v, want file info: %v", err, info)
+	}
+	if info.Size() != 8 {
+		t.Fatalf("got: %v, want file size: %d bytes", info.Size(), 8)
+	}
+
+	if err := cli.WriteStreamWithLength("/404/works.txt", strings.NewReader(content), int64(len(content)), 0660); err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	if info, err := fs.Stat(ctx, "/404/works.txt"); err != nil {
+		t.Fatalf("got: %v, want file info: %v", err, info)
+	}
+}
+
+func TestWriteStreamWithLengthFromPipe(t *testing.T) {
+	cli, srv, fs, ctx := newServer(t)
+	defer srv.Close()
+
+	r, w := io.Pipe()
+
+	go func() {
+		defer w.Close()
+		fmt.Fprint(w, "foo")
+		time.Sleep(1 * time.Second)
+		fmt.Fprint(w, " ")
+		time.Sleep(1 * time.Second)
+		fmt.Fprint(w, "bar\n")
+	}()
+
+	if err := cli.WriteStreamWithLength("/newfile.txt", r, 8, 0660); err != nil {
+		t.Fatalf("got: %v, want nil", err)
+	}
+
+	info, err := fs.Stat(ctx, "/newfile.txt")
+	if err != nil {
+		t.Fatalf("got: %v, want file info: %v", err, info)
+	}
+	if info.Size() != 8 {
+		t.Fatalf("got: %v, want file size: %d bytes", info.Size(), 8)
+	}
+}
+
+func TestWriteStreamWithLengthIncorrectContentLength(t *testing.T) {
+	cli, srv, _, _ := newServer(t)
+	defer srv.Close()
+
+	content := "foo bar\n"
+	if err := cli.WriteStreamWithLength("/newfile1.txt", strings.NewReader(content), int64(len(content)+10), 0660); err == nil {
+		t.Fatalf("got: expected error on invalid content length")
+	}
+
+	longContent := "this is a very long content that exceeds the declared length"
+	if err := cli.WriteStreamWithLength("/newfile2.txt", strings.NewReader(longContent), 10, 0660); err == nil {
+		t.Fatalf("got: expected error on invalid content length")
+	}
+}

@@ -111,6 +111,18 @@ defer file.Close()
 c.WriteStream(webdavFilePath, file, 0644)
 ```
 
+For non-seekable stream, this will read data into memory first
+to discover content length.
+
+### Upload file via writer with known length
+```go
+webdavFilePath := "folder/subfolder/file.txt"
+
+bytes := []byte{0x20, 0x20}
+
+c.WriteStreamWithLength(webdavFilePath, bytes.NewBuffer(bytes), int64(len(data)), 0644)
+```
+
 ### Get information about specified file/folder
 ```go
 webdavFilePath := "folder/subfolder/file.txt"
@@ -227,6 +239,7 @@ included.
   * [func (c *Client) Stat(path string) (os.FileInfo, error)](#Client.Stat)
   * [func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error)](#Client.Write)
   * [func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error)](#Client.WriteStream)
+  * [func (c *Client) WriteStreamWithLength(path string, stream io.Reader, contentLength int64, _ os.FileMode) (err error)](#Client.WriteStreamWithLength)
 * [type DigestAuth](#DigestAuth)
   * [func (d *DigestAuth) Authorize(c *http.Client, rq *http.Request, path string) error](#DigestAuth.Authorize)
   * [func (d *DigestAuth) Clone() Authenticator](#DigestAuth.Clone)
@@ -625,11 +638,17 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error)
 ```
 Write writes data to a given path
 
-#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9807:9893#L419)
+#### <a name="Client.WriteStream">func</a> (\*Client) [WriteStream](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=9857:9943#L419)
 ``` go
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error)
 ```
-WriteStream writes a stream
+WriteStream writes a stream - it will copy to memory for non-seekable streams
+
+#### <a name="Client.WriteStreamWithLength">func</a> (\*Client) [WriteStreamWithLength](https://github.com/studio-b12/gowebdav/blob/master/client.go?s=10683:10800#L463)
+``` go
+func (c *Client) WriteStreamWithLength(path string, stream io.Reader, contentLength int64, _ os.FileMode) (err error)
+```
+WriteStream writes a stream with a known content length
 
 ### <a name="DigestAuth">type</a> [DigestAuth](https://github.com/studio-b12/gowebdav/blob/master/digestAuth.go?s=157:254#L14)
 ``` go

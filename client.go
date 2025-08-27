@@ -415,7 +415,7 @@ func (c *Client) Write(path string, data []byte, _ os.FileMode) (err error) {
 	return NewPathError("Write", path, s)
 }
 
-// WriteStream writes a stream
+// WriteStream writes a stream - it will copy to memory for non-seekable streams
 func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err error) {
 
 	err = c.createParentCollection(path)
@@ -456,5 +456,26 @@ func (c *Client) WriteStream(path string, stream io.Reader, _ os.FileMode) (err 
 
 	default:
 		return NewPathError("WriteStream", path, s)
+	}
+}
+
+// WriteStream writes a stream with a known content length
+func (c *Client) WriteStreamWithLength(path string, stream io.Reader, contentLength int64, _ os.FileMode) (err error) {
+	err = c.createParentCollection(path)
+	if err != nil {
+		return err
+	}
+
+	s, err := c.put(path, stream, contentLength)
+	if err != nil {
+		return err
+	}
+
+	switch s {
+	case 200, 201, 204:
+		return nil
+
+	default:
+		return NewPathError("WriteStreamWithLength", path, s)
 	}
 }
