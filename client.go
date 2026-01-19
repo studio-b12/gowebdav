@@ -82,7 +82,7 @@ func (c *Client) Connect() error {
 		return err
 	}
 
-	if rs.StatusCode != 200 {
+	if rs.StatusCode < 200 || rs.StatusCode >= 300 {
 		return NewPathError("Connect", c.root, rs.StatusCode)
 	}
 

@@ -40,6 +40,23 @@ func basicAuth(h http.Handler) http.HandlerFunc {
 	}
 }
 
+func basicAuthNoContent(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if user, passwd, ok := r.BasicAuth(); ok {
+			if user == "user" && passwd == "password" {
+				w.WriteHeader(http.StatusNoContent)
+				h.ServeHTTP(w, r)
+				return
+			}
+
+			http.Error(w, "not authorized", 403)
+		} else {
+			w.Header().Set("WWW-Authenticate", `Basic realm="x"`)
+			w.WriteHeader(401)
+		}
+	}
+}
+
 func basicAuthWithPostHandlerFunc(h http.Handler, postHandlerFunc http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, passwd, ok := r.BasicAuth()
@@ -132,6 +149,10 @@ func newServer(t *testing.T) (*Client, *httptest.Server, webdav.FileSystem, cont
 	return newAuthServer(t, basicAuth)
 }
 
+func newServerAuthNoContent(t *testing.T) (*Client, *httptest.Server, webdav.FileSystem, context.Context) {
+	return newAuthServer(t, basicAuthNoContent)
+}
+
 func newAuthServer(t *testing.T, auth func(h http.Handler) http.HandlerFunc) (*Client, *httptest.Server, webdav.FileSystem, context.Context) {
 	srv, fs, ctx := newAuthSrv(t, auth)
 	cli := NewClient(srv.URL, "user", "password")
@@ -184,6 +205,19 @@ func newAuthSrvAcquireContentLength(t *testing.T, authWithPostHandlerFunc func(h
 
 func TestConnect(t *testing.T) {
 	cli, srv, _, _ := newServer(t)
+	defer srv.Close()
+	if err := cli.Connect(); err != nil {
+		t.Fatalf("got error: %v, want nil", err)
+	}
+
+	cli = NewClient(srv.URL, "no", "no")
+	if err := cli.Connect(); err == nil {
+		t.Fatalf("got nil, want error: %v", err)
+	}
+}
+
+func TestConnectAuthNoContent(t *testing.T) {
+	cli, srv, _, _ := newServerAuthNoContent(t)
 	defer srv.Close()
 	if err := cli.Connect(); err != nil {
 		t.Fatalf("got error: %v, want nil", err)
