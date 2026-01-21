@@ -3,6 +3,7 @@ package gowebdav
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 )
 
@@ -54,4 +55,17 @@ func NewPathErrorErr(op string, path string, err error) error {
 		Path: path,
 		Err:  err,
 	}
+}
+
+// GetStatusCode returns status code of the error
+func GetStatusCode(err error) int {
+	var pe *os.PathError
+	if !errors.As(err, &pe) {
+		return http.StatusInternalServerError
+	}
+	var se StatusError
+	if !errors.As(pe.Err, &se) {
+		return http.StatusInternalServerError
+	}
+	return se.Status
 }
