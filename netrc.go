@@ -44,9 +44,35 @@ func ReadConfig(uri, netrc string) (string, string) {
 		return "", ""
 	}
 
+	defaultLogin, defaultPass := "", ""
 	tokens := strings.Fields(string(data))
 	for i := 0; i < len(tokens); {
 		if tokens[i] != "machine" {
+			if tokens[i] == "default" {
+				i++
+				login, pass := "", ""
+				for i < len(tokens) && tokens[i] != "machine" && tokens[i] != "default" {
+					switch tokens[i] {
+					case "login":
+						if i+1 < len(tokens) {
+							login = tokens[i+1]
+							i += 2
+							continue
+						}
+					case "password":
+						if i+1 < len(tokens) {
+							pass = tokens[i+1]
+							i += 2
+							continue
+						}
+					}
+					i++
+				}
+				if login != "" && pass != "" {
+					defaultLogin, defaultPass = login, pass
+				}
+				continue
+			}
 			i++
 			continue
 		}
@@ -58,7 +84,7 @@ func ReadConfig(uri, netrc string) (string, string) {
 		i += 2
 
 		login, pass := "", ""
-		for i < len(tokens) && tokens[i] != "machine" {
+		for i < len(tokens) && tokens[i] != "machine" && tokens[i] != "default" {
 			switch tokens[i] {
 			case "login":
 				if i+1 < len(tokens) {
@@ -81,5 +107,5 @@ func ReadConfig(uri, netrc string) (string, string) {
 		}
 	}
 
-	return "", ""
+	return defaultLogin, defaultPass
 }

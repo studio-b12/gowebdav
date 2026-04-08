@@ -41,6 +41,36 @@ func TestReadConfigMatchesHostnameWithoutPort(t *testing.T) {
 	}
 }
 
+func TestReadConfigMachineEntryBeatsDefault(t *testing.T) {
+	dir := t.TempDir()
+	netrc := filepath.Join(dir, ".netrc")
+	content := "machine example.com login demo password secret\n" +
+		"default login guest password fallback\n"
+	if err := os.WriteFile(netrc, []byte(content), 0600); err != nil {
+		t.Fatalf("write netrc: %v", err)
+	}
+
+	login, pass := ReadConfig("https://example.com/webdav", netrc)
+	if login != "demo" || pass != "secret" {
+		t.Fatalf("got login=%q pass=%q, want demo/secret", login, pass)
+	}
+}
+
+func TestReadConfigFallsBackToDefault(t *testing.T) {
+	dir := t.TempDir()
+	netrc := filepath.Join(dir, ".netrc")
+	content := "machine example.com login demo password secret\n" +
+		"default login guest password fallback\n"
+	if err := os.WriteFile(netrc, []byte(content), 0600); err != nil {
+		t.Fatalf("write netrc: %v", err)
+	}
+
+	login, pass := ReadConfig("https://missing.example/webdav", netrc)
+	if login != "guest" || pass != "fallback" {
+		t.Fatalf("got login=%q pass=%q, want guest/fallback", login, pass)
+	}
+}
+
 func TestStatInvalidXMLReturnsError(t *testing.T) {
 	srv := httptest.NewServer(basicAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

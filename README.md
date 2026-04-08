@@ -26,10 +26,10 @@ The default implementation negotiates the algorithm based on the user's preferen
 Out-of-box authentication support for:
 
 * [BasicAuth](https://en.wikipedia.org/wiki/Basic_access_authentication)
+* [Bearer Token](https://datatracker.ietf.org/doc/html/rfc6750)
 * [DigestAuth](https://en.wikipedia.org/wiki/Digest_access_authentication)
 * [MS-PASS](https://github.com/studio-b12/gowebdav/pull/70#issuecomment-1421713726)
 * [WIP Kerberos](https://github.com/studio-b12/gowebdav/pull/71#issuecomment-1416465334)
-* [WIP Bearer Token](https://github.com/studio-b12/gowebdav/issues/61)
 
 ## Usage
 
@@ -48,6 +48,15 @@ c.Connect()
 After you can use this `Client` to perform actions, described below.
 
 **NOTICE:** We will not check for errors in the examples, to focus you on the `gowebdav` library's code, but you should do it in your code!
+
+### Connect with a Bearer token
+```go
+root := "https://webdav.mydomain.me"
+token := "token"
+
+c := gowebdav.NewBearerAuthClient(root, token)
+c.Connect()
+```
 
 ### Create path on a WebDAV server
 ```go
