@@ -72,25 +72,33 @@ func parseModified(s *string) time.Time {
 
 func parseXML(data io.Reader, resp interface{}, parse func(resp interface{}) error) error {
 	decoder := xml.NewDecoder(data)
-	for t, _ := decoder.Token(); t != nil; t, _ = decoder.Token() {
+	for {
+		t, err := decoder.Token()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
 		switch se := t.(type) {
 		case xml.StartElement:
 			if se.Name.Local == "response" {
-				if e := decoder.DecodeElement(resp, &se); e == nil {
-					if err := parse(resp); err != nil {
-						return err
-					}
+				if err := decoder.DecodeElement(resp, &se); err != nil {
+					return err
+				}
+				if err := parse(resp); err != nil {
+					return err
 				}
 			}
 		}
 	}
-	return nil
 }
 
 // limitedReadCloser wraps a io.ReadCloser and limits the number of bytes that can be read from it.
 type limitedReadCloser struct {
 	rc        io.ReadCloser
-	remaining int
+	remaining int64
 }
 
 func (l *limitedReadCloser) Read(buf []byte) (int, error) {
@@ -98,12 +106,12 @@ func (l *limitedReadCloser) Read(buf []byte) (int, error) {
 		return 0, io.EOF
 	}
 
-	if len(buf) > l.remaining {
-		buf = buf[0:l.remaining]
+	if int64(len(buf)) > l.remaining {
+		buf = buf[0:int(l.remaining)]
 	}
 
 	n, err := l.rc.Read(buf)
-	l.remaining -= n
+	l.remaining -= int64(n)
 
 	return n, err
 }

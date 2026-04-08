@@ -226,7 +226,7 @@ func (c *Client) Stat(path string) (os.FileInfo, error) {
 
 	if err != nil {
 		if _, ok := err.(*os.PathError); !ok {
-			err = NewPathErrorErr("ReadDir", path, err)
+			err = NewPathErrorErr("Stat", path, err)
 		}
 	}
 	return f, err
@@ -241,7 +241,7 @@ func (c *Client) Remove(path string) error {
 func (c *Client) RemoveAll(path string) error {
 	rs, err := c.req("DELETE", path, nil, nil)
 	if err != nil {
-		return NewPathError("Remove", path, 400)
+		return NewPathErrorErr("Remove", path, err)
 	}
 	err = rs.Body.Close()
 	if err != nil {
@@ -374,15 +374,20 @@ func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadClos
 	if rs.StatusCode == 200 {
 		// discard first 'offset' bytes.
 		if _, err := io.Copy(io.Discard, io.LimitReader(rs.Body, offset)); err != nil {
+			rs.Body.Close()
 			return nil, NewPathErrorErr("ReadStreamRange", path, err)
 		}
 
+		if length == 0 {
+			return rs.Body, nil
+		}
+
 		// return a io.ReadCloser that is limited to `length` bytes.
-		return &limitedReadCloser{rc: rs.Body, remaining: int(length)}, nil
+		return &limitedReadCloser{rc: rs.Body, remaining: length}, nil
 	}
 
 	rs.Body.Close()
-	return nil, NewPathError("ReadStream", path, rs.StatusCode)
+	return nil, NewPathError("ReadStreamRange", path, rs.StatusCode)
 }
 
 // Write writes data to a given path

@@ -2,6 +2,7 @@ package gowebdav
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -29,9 +30,49 @@ func TestDigestAuthAuthorize(t *testing.T) {
 	rq, _ := http.NewRequest("GET", "http://localhost/", nil)
 	a.Authorize(nil, rq, "/")
 	// TODO this is a very lazy test it cuts of cnonce
-	ex := `Digest username="user", realm="", nonce="", uri="/", nc=1, cnonce="`
+	ex := `Digest username="user", realm="", nonce="", uri="/", nc=00000001, cnonce="`
 	if strings.Index(rq.Header.Get("Authorization"), ex) != 0 {
 		t.Error("got wrong Authorization header: " + rq.Header.Get("Authorization"))
+	}
+}
+
+func TestDigestAuthAuthorizeMD5Sess(t *testing.T) {
+	a := &DigestAuth{
+		user: "user",
+		pw:   "password",
+		digestParts: map[string]string{
+			"realm":     "testrealm@host.com",
+			"nonce":     "dcd98b7102dd2f0e8b11d0f600bfb0c093",
+			"algorithm": "MD5-sess",
+			"qop":       "auth",
+		},
+	}
+	rq, _ := http.NewRequest("GET", "http://localhost/", nil)
+	if err := a.Authorize(nil, rq, "/dir/index.html"); err != nil {
+		t.Fatalf("authorize: %v", err)
+	}
+
+	parts := parseDigestAuthorizationHeader(t, rq.Header.Get("Authorization"))
+	expectedHA1 := getMD5(fmt.Sprintf("%s:%s:%s",
+		getMD5("user:testrealm@host.com:password"),
+		"dcd98b7102dd2f0e8b11d0f600bfb0c093",
+		parts["cnonce"],
+	))
+	expectedHA2 := getMD5("GET:/dir/index.html")
+	expectedResponse := getMD5(fmt.Sprintf("%s:%s:%s:%s:%s:%s",
+		expectedHA1,
+		"dcd98b7102dd2f0e8b11d0f600bfb0c093",
+		parts["nc"],
+		parts["cnonce"],
+		"auth",
+		expectedHA2,
+	))
+
+	if parts["response"] != expectedResponse {
+		t.Fatalf("got response=%q, want %q", parts["response"], expectedResponse)
+	}
+	if parts["algorithm"] != "MD5-sess" {
+		t.Fatalf("got algorithm=%q, want MD5-sess", parts["algorithm"])
 	}
 }
 
@@ -72,4 +113,19 @@ func TestDigestAuthVerify(t *testing.T) {
 	if !redo {
 		t.Errorf("got redo: %t, want true", redo)
 	}
+}
+
+func parseDigestAuthorizationHeader(t *testing.T, header string) map[string]string {
+	t.Helper()
+
+	header = strings.TrimPrefix(header, "Digest ")
+	result := make(map[string]string)
+	for _, part := range strings.Split(header, ",") {
+		kv := strings.SplitN(strings.TrimSpace(part), "=", 2)
+		if len(kv) != 2 {
+			t.Fatalf("malformed digest header part %q", part)
+		}
+		result[kv[0]] = strings.Trim(kv[1], `"`)
+	}
+	return result
 }

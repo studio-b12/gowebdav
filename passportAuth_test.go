@@ -14,6 +14,7 @@ func TestNewPassportAuth(t *testing.T) {
 	pass := "password"
 	p1 := "some,comma,separated,values"
 	token := "from-PP='token'"
+	cookieValue := "YWJjPQ=="
 
 	authHandler := func(h http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -38,12 +39,12 @@ func TestNewPassportAuth(t *testing.T) {
 				t.Error(err)
 			}
 			if reg.MatchString(r.Header.Get("Authorization")) {
-				w.Header().Set("Set-Cookie", "Pass=port")
+				w.Header().Set("Set-Cookie", "Pass="+cookieValue+"; Path=/")
 				h.ServeHTTP(w, r)
 				return
 			}
 			for _, c := range r.Cookies() {
-				if c.Name == "Pass" && c.Value == "port" {
+				if c.Name == "Pass" && c.Value == cookieValue {
 					h.ServeHTTP(w, r)
 					return
 				}

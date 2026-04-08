@@ -66,21 +66,100 @@ func (d *DigestAuth) String() string {
 
 func digestParts(resp *http.Response) map[string]string {
 	result := map[string]string{}
-	if len(resp.Header["Www-Authenticate"]) > 0 {
-		wantedHeaders := []string{"nonce", "realm", "qop", "opaque", "algorithm", "entityBody"}
-		responseHeaders := strings.Split(resp.Header["Www-Authenticate"][0], ",")
-		for _, r := range responseHeaders {
-			for _, w := range wantedHeaders {
-				if strings.Contains(r, w) {
-					result[w] = strings.Trim(
-						strings.SplitN(r, `=`, 2)[1],
-						`"`,
-					)
-				}
+	header := resp.Header.Get("Www-Authenticate")
+	if header == "" {
+		return result
+	}
+
+	if _, params, ok := strings.Cut(header, " "); ok {
+		header = params
+	}
+
+	for _, directive := range splitHeaderDirectives(header) {
+		key, value, ok := strings.Cut(directive, "=")
+		if !ok {
+			continue
+		}
+
+		key = strings.ToLower(strings.TrimSpace(key))
+		value = strings.Trim(strings.TrimSpace(value), `"`)
+
+		switch key {
+		case "nonce", "realm", "qop", "opaque", "algorithm", "entitybody":
+			result[key] = value
+		}
+	}
+
+	if qop, ok := result["qop"]; ok {
+		result["qop"] = selectDigestQOP(qop)
+	}
+	if algorithm, ok := result["algorithm"]; ok {
+		result["algorithm"] = normalizeDigestAlgorithm(algorithm)
+	}
+
+	return result
+}
+
+func splitHeaderDirectives(header string) []string {
+	var (
+		result  []string
+		current strings.Builder
+		quoted  bool
+	)
+
+	for _, r := range header {
+		switch r {
+		case '"':
+			quoted = !quoted
+			current.WriteRune(r)
+		case ',':
+			if quoted {
+				current.WriteRune(r)
+				continue
+			}
+			part := strings.TrimSpace(current.String())
+			if part != "" {
+				result = append(result, part)
+			}
+			current.Reset()
+		default:
+			current.WriteRune(r)
+		}
+	}
+
+	part := strings.TrimSpace(current.String())
+	if part != "" {
+		result = append(result, part)
+	}
+
+	return result
+}
+
+func selectDigestQOP(qop string) string {
+	var firstSupported string
+	for _, token := range strings.Split(qop, ",") {
+		token = strings.ToLower(strings.TrimSpace(token))
+		switch token {
+		case "auth":
+			return "auth"
+		case "auth-int":
+			if firstSupported == "" {
+				firstSupported = token
 			}
 		}
 	}
-	return result
+	return firstSupported
+}
+
+func normalizeDigestAlgorithm(algorithm string) string {
+	switch strings.ToUpper(strings.TrimSpace(algorithm)) {
+	case "MD5":
+		return "MD5"
+	case "MD5-SESS":
+		return "MD5-sess"
+	default:
+		return strings.TrimSpace(algorithm)
+	}
 }
 
 func getMD5(text string) string {
@@ -102,7 +181,7 @@ func getDigestAuthorization(digestParts map[string]string) string {
 	var (
 		ha1        string
 		ha2        string
-		nonceCount = 00000001
+		nonceCount = "00000001"
 		cnonce     = getCnonce()
 		response   string
 	)
@@ -113,9 +192,9 @@ func getDigestAuthorization(digestParts map[string]string) string {
 		ha1 = getMD5(d["username"] + ":" + d["realm"] + ":" + d["password"])
 	case "MD5-sess":
 		ha1 = getMD5(
-			fmt.Sprintf("%s:%v:%s",
+			fmt.Sprintf("%s:%s:%s",
 				getMD5(d["username"]+":"+d["realm"]+":"+d["password"]),
-				nonceCount,
+				d["nonce"],
 				cnonce,
 			),
 		)
@@ -143,7 +222,7 @@ func getDigestAuthorization(digestParts map[string]string) string {
 		)
 	case "auth", "auth-int":
 		response = getMD5(
-			fmt.Sprintf("%s:%s:%v:%s:%s:%s",
+			fmt.Sprintf("%s:%s:%s:%s:%s:%s",
 				ha1,
 				d["nonce"],
 				nonceCount,
@@ -154,7 +233,7 @@ func getDigestAuthorization(digestParts map[string]string) string {
 		)
 	}
 
-	authorization := fmt.Sprintf(`Digest username="%s", realm="%s", nonce="%s", uri="%s", nc=%v, cnonce="%s", response="%s"`,
+	authorization := fmt.Sprintf(`Digest username="%s", realm="%s", nonce="%s", uri="%s", nc=%s, cnonce="%s", response="%s"`,
 		d["username"], d["realm"], d["nonce"], d["uri"], nonceCount, cnonce, response)
 
 	if d["qop"] != "" {
@@ -163,6 +242,10 @@ func getDigestAuthorization(digestParts map[string]string) string {
 
 	if d["opaque"] != "" {
 		authorization += fmt.Sprintf(`, opaque="%s"`, d["opaque"])
+	}
+
+	if d["algorithm"] != "" {
+		authorization += fmt.Sprintf(`, algorithm=%s`, d["algorithm"])
 	}
 
 	return authorization

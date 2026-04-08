@@ -205,7 +205,7 @@ func cmdPut(c *d.Client, p0, p1 string) (err error) {
 			return
 		}
 		if !d.IsErrNotFound(err) && fi.IsDir() {
-			p0 = path.Join(p0, p1)
+			p0 = path.Join(p0, filepath.Base(p1))
 		}
 	}
 

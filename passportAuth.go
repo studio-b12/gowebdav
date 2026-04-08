@@ -103,7 +103,11 @@ func (p *PassportAuth) genCookies(c *http.Client, partnerUrl string, header *htt
 		Path:   "/login2.srf",
 	}
 
-	partnerServerChallenge := strings.Split(header.Get("Www-Authenticate"), " ")[1]
+	authHeaderParts := strings.SplitN(header.Get("Www-Authenticate"), " ", 2)
+	if len(authHeaderParts) != 2 {
+		return NewPathError("Authorize", "/", 401)
+	}
+	partnerServerChallenge := authHeaderParts[1]
 
 	req := http.Request{
 		Method: "GET",
@@ -164,17 +168,10 @@ func (p *PassportAuth) genCookies(c *http.Client, partnerUrl string, header *htt
 	}
 
 	// Step 8 (Set Token Message from Partner Server)
-	cookies := rs.Header.Values("Set-Cookie")
+	cookies := rs.Cookies()
 	p.cookies = make([]http.Cookie, len(cookies))
 	for i, cookie := range cookies {
-		cookieParts := strings.Split(cookie, ";")
-		cookieName := strings.Split(cookieParts[0], "=")[0]
-		cookieValue := strings.Split(cookieParts[0], "=")[1]
-
-		p.cookies[i] = http.Cookie{
-			Name:  cookieName,
-			Value: cookieValue,
-		}
+		p.cookies[i] = *cookie
 	}
 
 	return nil
