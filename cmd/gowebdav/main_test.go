@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	d "github.com/studio-b12/gowebdav"
+	d "github.com/wxk6b1203/gowebdav"
 )
 
 func TestCmdPutUsesLocalBaseNameForRemoteDirectory(t *testing.T) {
