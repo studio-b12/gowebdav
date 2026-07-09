@@ -277,6 +277,62 @@ func TestConnectMultiAuthII(t *testing.T) {
 	}
 }
 
+// TestAuthRetryBodyRace exercises the auth-retry path taken on the very first
+// request of a new client. The default nullAuth Verify always returns
+// (redo=true, ErrAuthChanged), so req() rewinds the body via r.GetBody() and
+// resends. Before the retry-body was snapshot in NewAuthenticator, the
+// retry's Seek(0) operated on the same *strings.Reader as the previous
+// request's still-in-progress writeLoop: net/http's Transport reads the
+// request body in a separate goroutine and returns to the caller as soon as
+// the response arrives, without waiting for the write to finish. Under
+// -race, that reliably produced the panic in
+// https://github.com/tailscale/tailscale/issues/20295.
+//
+// This test drives the race directly instead of through HTTP: goroutine 1 is
+// the stand-in for writeLoop reading the body, goroutine 2 is the stand-in
+// for req()'s retry rewinding via GetBody. Pre-fix this races on the shared
+// *strings.Reader; post-fix GetBody rewinds an independent snapshot.
+func TestAuthRetryBodyRace(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		az := NewAutoAuth("", "").(*authorizer)
+		orig := strings.NewReader("hello gowebdav race test payload")
+		shim, body := az.NewAuthenticator(orig)
+
+		rq, err := http.NewRequest("PROPFIND", "http://example.invalid/", nil)
+		if err != nil {
+			t.Fatalf("NewRequest: %v", err)
+		}
+		if err := shim.Authorize(nil, rq, "/"); err != nil {
+			t.Fatalf("Authorize: %v", err)
+		}
+
+		start := make(chan struct{})
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			<-start
+			io.Copy(io.Discard, body)
+		}()
+		go func() {
+			defer wg.Done()
+			<-start
+			rc, err := rq.GetBody()
+			if err != nil {
+				t.Errorf("GetBody: %v", err)
+				return
+			}
+			if rc != nil {
+				io.Copy(io.Discard, rc)
+				rc.Close()
+			}
+		}()
+		close(start)
+		wg.Wait()
+		shim.Close()
+	}
+}
+
 func TestReadDirConcurrent(t *testing.T) {
 	cli, srv, _, _ := newServer(t)
 	defer srv.Close()

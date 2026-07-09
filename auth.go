@@ -155,10 +155,23 @@ func (a *authorizer) NewAuthenticator(body io.Reader) (Authenticator, io.Reader)
 	if body != nil {
 		// If the authorization fails, we will need to restart reading
 		// from the passed body stream.
-		// When body is seekable, use seek to reset the streams
+		// When body is seekable, use seek to reset the stream's
 		// cursor to the start.
 		// Otherwise, copy the stream into a buffer while uploading
-		// and use the buffers content on retry.
+		// and use the buffer's content on retry.
+		//
+		// For well-known in-memory reader types, make a clone like
+		// net/http.NewRequestWithContext to avoid data races.
+		switch v := body.(type) {
+		case *strings.Reader:
+			snap := *v
+			retryBuf = &snap
+		case *bytes.Reader:
+			snap := *v
+			retryBuf = &snap
+		case *bytes.Buffer:
+			retryBuf = bytes.NewReader(v.Bytes())
+		}
 		if _, ok := retryBuf.(io.Seeker); ok {
 			body = io.NopCloser(body)
 		} else {
