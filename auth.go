@@ -114,6 +114,14 @@ func NewAutoAuth(login string, secret string) Authorizer {
 		return &BasicAuth{user: login, pw: secret}, nil
 	})
 
+	az.AddAuthenticator("token", func(c *http.Client, rs *http.Response, path string) (auth Authenticator, err error) {
+		return &TokenAuth{
+			token:     secret,
+			name:      login,
+			placement: PlacementHeader,
+		}, nil
+	})
+
 	az.AddAuthenticator("digest", func(c *http.Client, rs *http.Response, path string) (auth Authenticator, err error) {
 		return NewDigestAuth(login, secret, rs)
 	})

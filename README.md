@@ -27,6 +27,7 @@ Out-of-box authentication support for:
 
 * [BasicAuth](https://en.wikipedia.org/wiki/Basic_access_authentication)
 * [DigestAuth](https://en.wikipedia.org/wiki/Digest_access_authentication)
+* [TokenAuth](https://github.com/studio-b12/gowebdav/pull/88)
 * [MS-PASS](https://github.com/studio-b12/gowebdav/pull/70#issuecomment-1421713726)
 * [WIP Kerberos](https://github.com/studio-b12/gowebdav/pull/71#issuecomment-1416465334)
 * [WIP Bearer Token](https://github.com/studio-b12/gowebdav/issues/61)
@@ -46,6 +47,21 @@ c.Connect()
 ```
 
 After you can use this `Client` to perform actions, described below.
+
+For tokens (Bearer, OAuth, etc):
+
+```go
+root := "https://webdav.mydomain.me"
+token := "ltMvpNy1zuIOryu80pzTaf"
+
+c1 := gowebdav.NewAuthClient(root, gowebdav.NewHeaderTokenAuthorizer("Bearer", token)) // Header (Authorization: Bearer ltMvpNy1zuIOryu80pzTaf)
+c2 := gowebdav.NewAuthClient(root, gowebdav.NewHeaderTokenAuthorizer("OAuth", token)) // Header (Authorization: OAuth ltMvpNy1zuIOryu80pzTaf)
+c3 := gowebdav.NewAuthClient(root, gowebdav.NewHeaderTokenAuthorizer("", token)) // Header (Authorization: ltMvpNy1zuIOryu80pzTaf)
+
+// NOT SECURE CASE
+c3 := gowebdav.NewAuthClient(root, gowebdav.NewQueryTokenAuthorizer("access_token", token)) // URL (https://webdav.mydomain.me?access_token=ltMvpNy1zuIOryu80pzTaf)
+c1.Connect()
+```
 
 **NOTICE:** We will not check for errors in the examples, to focus you on the `gowebdav` library's code, but you should do it in your code!
 
