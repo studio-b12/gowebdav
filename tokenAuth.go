@@ -69,7 +69,7 @@ func (t *TokenAuth) Authorize(c *http.Client, rq *http.Request, path string) err
 
 // Verify verifies if the authentication
 func (t *TokenAuth) Verify(c *http.Client, rs *http.Response, path string) (redo bool, err error) {
-	if rs.StatusCode == 401 {
+	if rs.StatusCode == http.StatusUnauthorized {
 		err = NewPathError("Authorize", path, rs.StatusCode)
 	}
 	return
