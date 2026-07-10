@@ -47,6 +47,16 @@ c.Connect()
 
 After you can use this `Client` to perform actions, described below.
 
+For **OAuth** token:
+
+```go
+root := "https://webdav.mydomain.me"
+oauthToken := "ltMvpNy1zuIOryu80pzTaf"
+
+c := gowebdav.NewAuthClient(root, gowebdav.NewHeaderTokenAuthorizer("OAuth", oauthToken))
+c.Connect()
+```
+
 **NOTICE:** We will not check for errors in the examples, to focus you on the `gowebdav` library's code, but you should do it in your code!
 
 ### Create path on a WebDAV server
