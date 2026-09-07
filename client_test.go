@@ -466,6 +466,47 @@ func TestReadStreamRangeUnkownLength(t *testing.T) {
 	}
 }
 
+// newNoRangeServer answers every GET with 200 and the whole file, ignoring Range.
+func newNoRangeServer() (*Client, *httptest.Server) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(200)
+		_, _ = w.Write([]byte("hello gowebdav\n"))
+	}))
+	return NewClient(srv.URL, "", ""), srv
+}
+
+func TestReadStreamRangeUnkownLengthWithoutRangeSupport(t *testing.T) {
+	cli, srv := newNoRangeServer()
+	defer srv.Close()
+
+	stream, err := cli.ReadStreamRange("/hello.txt", 6, 0)
+	if err != nil {
+		t.Fatalf("got: %v, want data: %v", err, stream)
+	}
+	defer stream.Close()
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	if buf.String() != "gowebdav\n" {
+		t.Fatalf("got: %v, want stream: gowebdav\n", buf.String())
+	}
+}
+
+func TestReadStreamRangeWithoutRangeSupport(t *testing.T) {
+	cli, srv := newNoRangeServer()
+	defer srv.Close()
+
+	stream, err := cli.ReadStreamRange("/hello.txt", 6, 4)
+	if err != nil {
+		t.Fatalf("got: %v, want data: %v", err, stream)
+	}
+	defer stream.Close()
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	if buf.String() != "gowe" {
+		t.Fatalf("got: %v, want stream: gowe", buf.String())
+	}
+}
+
 func TestStat(t *testing.T) {
 	cli, srv, _, _ := newServer(t)
 	defer srv.Close()

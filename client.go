@@ -377,6 +377,11 @@ func (c *Client) ReadStreamRange(path string, offset, length int64) (io.ReadClos
 			return nil, NewPathErrorErr("ReadStreamRange", path, err)
 		}
 
+		// length <= 0 asked for offset..EOF, same as the Range header above: do not limit.
+		if length <= 0 {
+			return rs.Body, nil
+		}
+
 		// return a io.ReadCloser that is limited to `length` bytes.
 		return &limitedReadCloser{rc: rs.Body, remaining: int(length)}, nil
 	}
